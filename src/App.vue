@@ -1,0 +1,126 @@
+<template>
+  <div id="app">
+    <el-container>
+      <el-header class="header">
+        <el-button icon="el-icon-s-grid">所有选项</el-button>
+      </el-header>
+      <el-main>
+        <el-row :gutter="16">
+          <el-col :span="6">
+            <el-card style="height: 489px;">
+              <h3 style="margin: 0px;text-align: center;">魔兽世界</h3>
+              <div style="position: absolute; bottom: 16px;">
+                <div style="position: relative;">
+                  <div style="height: 12px;line-height: 12px;font-size: 12px;">
+                    游戏版本
+                  </div>
+                  <el-select
+                    v-model="version"
+                    style="margin-top: 8px;width: 160px;"
+                  >
+                    <el-option
+                      label="AzerothCore"
+                      value="AzerothCore"
+                    ></el-option>
+                  </el-select>
+                  <div style="margin-top: 8px;">
+                    <el-button
+                      type="primary"
+                      style="border-radius: 4px 0 0 4px;width:128px;"
+                    >
+                      进入游戏
+                    </el-button>
+
+                    <el-dropdown
+                      type="primary"
+                      placement="top-start"
+                      trigger="click"
+                      @command="handleCommand"
+                    >
+                      <el-button
+                        type="primary"
+                        icon="el-icon-setting"
+                        style="margin-left: 0px;padding: 12px 8px;border-radius: 0 4px 4px 0;border-left-color: #ffffff;"
+                      ></el-button>
+                      <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item command="mysql"
+                          >启动Mysql</el-dropdown-item
+                        >
+                        <el-dropdown-item command="auth"
+                          >启动Auth Server</el-dropdown-item
+                        >
+                        <el-dropdown-item command="world"
+                          >启动World Server</el-dropdown-item
+                        >
+                      </el-dropdown-menu>
+                    </el-dropdown>
+                  </div>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="18">
+            <el-card style="height: 151px; margin: 0 0 0 16px;">
+              123456
+            </el-card>
+            <el-card style="height: 151px; margin: 16px 0 0 16px;"></el-card>
+            <el-card style="height: 151px; margin: 16px 0 0 16px;"></el-card>
+          </el-col>
+        </el-row>
+      </el-main>
+    </el-container>
+  </div>
+</template>
+
+<script>
+const ipcRenderer = window.ipcRenderer;
+
+export default {
+  data() {
+    return {
+      version: "AzerothCore",
+    };
+  },
+  methods: {
+    handleCommand(command) {
+      switch (command) {
+        case "mysql":
+          ipcRenderer.send("START_MYSQL");
+          break;
+        default:
+          break;
+      }
+    },
+  },
+};
+</script>
+
+<style>
+html,
+body {
+  margin: 0;
+  padding: 8px;
+}
+.el-main {
+  padding: 0 !important;
+}
+
+.el-main > .el-row {
+  margin: 16px 0 0 0 !important;
+}
+
+.el-main > .el-row > .el-col {
+  padding: 0 !important;
+}
+.header {
+  background-color: rgba(40, 42, 50, 0.5);
+  line-height: 60px;
+  border-radius: 8px;
+}
+.el-card__body {
+  padding: 16px !important;
+}
+.el-dropdown > .el-button-group > .el-button:first-child {
+  width: 131px;
+}
+</style>
