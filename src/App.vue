@@ -27,6 +27,7 @@
                     <el-button
                       type="primary"
                       style="border-radius: 4px 0 0 4px;width:128px;"
+                      @click="enterGame"
                     >
                       进入游戏
                     </el-button>
@@ -59,12 +60,25 @@
               </div>
             </el-card>
           </el-col>
-          <el-col :span="18">
-            <el-card style="height: 151px; margin: 0 0 0 16px;">
-              123456
+          <el-col :span="18" style="font-size: 10px;">
+            <el-card
+              ref="mysqlCard"
+              style="height: 151px; margin: 0 0 0 16px;overflow: scroll;"
+            >
+              <div v-html="mysql.replaceAll('\n', '<br>')"></div>
             </el-card>
-            <el-card style="height: 151px; margin: 16px 0 0 16px;"></el-card>
-            <el-card style="height: 151px; margin: 16px 0 0 16px;"></el-card>
+            <el-card
+              ref="authCard"
+              style="height: 151px; margin: 16px 0 0 16px;overflow: scroll;"
+            >
+              <div v-html="auth.replaceAll('\n', '<br>')"></div>
+            </el-card>
+            <el-card
+              ref="worldCard"
+              style="height: 151px; margin: 16px 0 0 16px;overflow: auto;"
+            >
+              <div v-html="world.replaceAll('\n', '<br>')"></div>
+            </el-card>
           </el-col>
         </el-row>
       </el-main>
@@ -79,18 +93,57 @@ export default {
   data() {
     return {
       version: "AzerothCore",
+      mysql: "",
+      auth: "",
+      world: "",
     };
   },
   methods: {
+    enterGame() {
+      ipcRenderer.send("START_MYSQL");
+      setTimeout(() => {
+        ipcRenderer.send("START_AUTH_SERVER");
+        ipcRenderer.send("START_WORLD_SERVER");
+      }, 5000);
+    },
     handleCommand(command) {
       switch (command) {
         case "mysql":
           ipcRenderer.send("START_MYSQL");
           break;
+        case "auth":
+          ipcRenderer.send("START_AUTH_SERVER");
+          break;
+        case "world":
+          ipcRenderer.send("START_WORLD_SERVER");
+          break;
         default:
           break;
       }
     },
+  },
+  mounted() {
+    ipcRenderer.on("START_MYSQL", (event, response) => {
+      this.mysql = `${this.mysql}${response}`;
+      let element = this.$refs["mysqlCard"].$el;
+      this.$nextTick(() => {
+        element.scrollTop = element.scrollHeight;
+      });
+    });
+    ipcRenderer.on("START_AUTH_SERVER", (event, response) => {
+      this.auth = `${this.auth}${response}`;
+      let element = this.$refs["authCard"].$el;
+      this.$nextTick(() => {
+        element.scrollTop = element.scrollHeight;
+      });
+    });
+    ipcRenderer.on("START_WORLD_SERVER", (event, response) => {
+      this.world = `${this.world}${response}`;
+      let element = this.$refs["worldCard"].$el;
+      this.$nextTick(() => {
+        element.scrollTop = element.scrollHeight;
+      });
+    });
   },
 };
 </script>
