@@ -12,7 +12,7 @@
           <el-row :gutter="16" style="max-height: 60vh;overflow: auto;">
             <el-form :model="authserverConfiguration">
               <el-col :span="8" :key="label" v-for="label in authLabels">
-                <el-form-item :label="$t(label)">
+                <el-form-item :label="label">
                   <el-input
                     v-model="authserverConfiguration[label]"
                     :placeholder="label"
@@ -27,7 +27,7 @@
           <el-row :gutter="16" style="max-height: 60vh;overflow: auto;">
             <el-form :model="worldserverConfiguration">
               <el-col :span="12" :key="label" v-for="label in worldLabels">
-                <el-form-item :label="$t(label)">
+                <el-form-item :label="label">
                   <el-input
                     v-model="worldserverConfiguration[label]"
                     :placeholder="label"
@@ -46,8 +46,8 @@ export default {
   data() {
     return {
       tab: "authserver",
-      authserverConfiguration: "",
-      worldserverConfiguration: "",
+      authserverConfiguration: {},
+      worldserverConfiguration: {},
       authLabels: [],
       worldLabels: [],
     };
@@ -66,31 +66,22 @@ export default {
       const dotConf = window.require("@calsranna/dot-conf");
 
       dotConf
-        .read("/Users/cals/FoxWoW/Server/configs/authserver.conf")
+        .read("D:\\FoxWoW\\Server\\Core\\configs\\authserver.conf")
         .then((conf) => {
           this.authserverConfiguration = conf.authserver;
           this.authLabels = Object.keys(conf.authserver);
         });
 
       dotConf
-        .read("/Users/cals/FoxWoW/Server/configs/worldserver.conf")
+        .read("D:\\FoxWoW\\Server\\Core\\configs\\worldserver.conf")
         .then((conf) => {
           this.worldserverConfiguration = conf.worldserver;
           this.worldLabels = Object.keys(conf.worldserver);
         });
     },
   },
-  mounted() {
+  created() {
     this.init();
-    // let buffer = fs.readFileSync(
-    //   "/Users/cals/FoxWoW/Server/configs/authserver.conf"
-    // );
-    // this.authserverConfiguration = buffer.toString().replaceAll("\n", "<br>");
-
-    // buffer = fs.readFileSync(
-    //   "/Users/cals/FoxWoW/Server/configs/worldserver.conf"
-    // );
-    // this.worldserverConfiguration = buffer.toString().replaceAll("\n", "<br>");
   },
 };
 </script>

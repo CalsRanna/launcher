@@ -5,6 +5,7 @@ import {
   Col,
   Container,
   Dialog,
+  Divider,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -13,6 +14,8 @@ import {
   Header,
   Input,
   Main,
+  Menu,
+  MenuItem,
   Option,
   Row,
   Select,
@@ -25,6 +28,7 @@ Vue.use(Card);
 Vue.use(Col);
 Vue.use(Container);
 Vue.use(Dialog);
+Vue.use(Divider);
 Vue.use(Dropdown);
 Vue.use(DropdownItem);
 Vue.use(DropdownMenu);
@@ -33,6 +37,8 @@ Vue.use(FormItem);
 Vue.use(Header);
 Vue.use(Input);
 Vue.use(Main);
+Vue.use(Menu);
+Vue.use(MenuItem);
 Vue.use(Option);
 Vue.use(Row);
 Vue.use(Select);

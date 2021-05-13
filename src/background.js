@@ -1,6 +1,6 @@
 "use strict";
 
-import { app, protocol, BrowserWindow } from "electron";
+import { app, protocol, BrowserWindow, ipcMain } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 const isDevelopment = process.env.NODE_ENV !== "production";
 const path = require("path");
@@ -14,7 +14,7 @@ protocol.registerSchemesAsPrivileged([
 async function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
-    height: 900,
+    height: 916,
     frame: false,
     resizable: false,
     webPreferences: {
@@ -59,3 +59,7 @@ if (isDevelopment) {
     });
   }
 }
+
+ipcMain.on("EXIT_APP", () => {
+  app.quit();
+});
