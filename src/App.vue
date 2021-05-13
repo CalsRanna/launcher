@@ -3,21 +3,13 @@
     <el-container>
       <el-header class="header">
         <el-button icon="el-icon-s-grid">所有选项</el-button>
-        <el-dropdown
-          split-button
-          type="primary"
+        <el-button
+          icon="el-icon-edit"
           style="margin-left: 8px;"
-          @click="handleClick"
+          @click="openConfigEditor"
         >
           配置编辑
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>黄金糕</el-dropdown-item>
-            <el-dropdown-item>狮子头</el-dropdown-item>
-            <el-dropdown-item>螺蛳粉</el-dropdown-item>
-            <el-dropdown-item>双皮奶</el-dropdown-item>
-            <el-dropdown-item>蚵仔煎</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+        </el-button>
         <el-button
           icon="el-icon-setting"
           style="margin-left: 8px;"
@@ -108,11 +100,17 @@
         </el-row>
       </el-main>
     </el-container>
+    <configuration-editor
+      :visible="editorVisible"
+      @close="closeConfigEditor"
+    ></configuration-editor>
   </div>
 </template>
 
 <script>
 const ipcRenderer = window.ipcRenderer;
+
+import ConfigurationEditor from "@/components/ConfigurationEditor";
 
 export default {
   data() {
@@ -121,6 +119,7 @@ export default {
       mysql: "",
       auth: "",
       world: "",
+      editorVisible: false,
     };
   },
   methods: {
@@ -133,6 +132,12 @@ export default {
         ipcRenderer.send("START_AUTH_SERVER");
         ipcRenderer.send("START_WORLD_SERVER");
       }, 1500);
+    },
+    openConfigEditor() {
+      this.editorVisible = true;
+    },
+    closeConfigEditor() {
+      this.editorVisible = false;
     },
     startClient() {
       ipcRenderer.send("START_CLIENT");
@@ -182,6 +187,9 @@ export default {
       });
     });
   },
+  components: {
+    ConfigurationEditor,
+  },
 };
 </script>
 
@@ -203,7 +211,7 @@ body {
   padding: 0 !important;
 }
 .header {
-  background-color: rgba(40, 42, 50, 0.5);
+  background-color: rgba(40, 42, 50, 0.25);
   line-height: 60px;
   border-radius: 8px;
 }
