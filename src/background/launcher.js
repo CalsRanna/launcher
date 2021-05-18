@@ -70,6 +70,8 @@ function startMysqld() {
               `mysqld: exited with code ${code}`
             );
           });
+        } else {
+          resolve();
         }
       })
       .catch(() => {
@@ -106,6 +108,8 @@ function startAuthserver() {
               `authserver: exited with code ${code}`
             );
           });
+        } else {
+          resolve();
         }
       })
       .catch(() => {
@@ -142,6 +146,8 @@ function startWorldserver() {
               `worldserver: exited with code ${code}`
             );
           });
+        } else {
+          resolve();
         }
       })
       .catch(() => {
