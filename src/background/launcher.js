@@ -1,216 +1,235 @@
 import { ipcMain } from "electron";
+
 const { spawn } = require("child_process");
 
-ipcMain.on("ENTER_GAME", (event) => {
-  let check = spawn("ps", {
-    shell: "powershell.exe",
-    windowsHide: true,
-  });
-  global.runningProcess = [];
+global.runningProcess = {
+  mysqld: undefined,
+  authserver: undefined,
+  worldserver: undefined,
+};
 
-  check.stdout.on("data", (data) => {
-    global.words = data.toString().split(/\s+/);
-    if (words.includes("mysqld")) {
-      runningProcess.push("mysqld");
-    }
-    if (words.includes("authserver")) {
-      runningProcess.push("authserver");
-    }
-    if (words.includes("worldserver")) {
-      runningProcess.push("worldserver");
-    }
-    if (words.includes("Wow")) {
-      runningProcess.push("Wow");
-    }
-  });
+function check() {
+  return new Promise((resolve, reject) => {
+    let check = spawn("ps", {
+      shell: "powershell.exe",
+      windowsHide: true,
+    });
 
-  check.on("close", (code) => {
-    if (!runningProcess.includes("mysqld")) {
-      let mysql = spawn("mysqld.exe", ["--console"], {
-        cwd: "D:\\FoxWOW\\Server\\Database\\bin\\",
-        shell: "cmd.exe",
-        windowsHide: true,
-      });
-
-      mysql.stdout.on("data", (data) => {
-        event.reply("START_MYSQL", data.toString());
-      });
-
-      mysql.stderr.on("data", (error) => {
-        event.reply("START_MYSQL", error.toString());
-      });
-
-      mysql.on("close", (code) => {
-        event.reply(
-          "START_MYSQL",
-          `mysql[${mysql.pid}]: exited with code ${code}`
-        );
-      });
-    }
-    if (!runningProcess.includes("authserver")) {
-      let auth = spawn("authserver.exe", {
-        cwd: "D:\\FoxWOW\\Server\\Core\\",
-        shell: "cmd.exe",
-        windowsHide: true,
-      });
-
-      auth.stdout.on("data", (data) => {
-        event.reply("START_AUTH_SERVER", data.toString());
-      });
-
-      auth.stderr.on("data", (error) => {
-        event.reply("START_AUTH_SERVER", error.toString());
-      });
-
-      auth.on("close", (code) => {
-        event.reply(
-          "START_AUTH_SERVER",
-          `authserver[${auth.pid}]: exited with code ${code}`
-        );
-      });
-    }
-    if (!runningProcess.includes("worldserver")) {
-      let world = spawn("worldserver.exe", {
-        cwd: "D:\\FoxWOW\\Server\\Core\\",
-        shell: "cmd.exe",
-        windowsHide: true,
-      });
-
-      world.stdout.on("data", (data) => {
-        event.reply("START_WORLD_SERVER", data.toString());
-        if (data.toString().includes("(worldserver-daemon) ready")) {
-          if (!runningProcess.includes("Wow")) {
-            spawn("Wow.exe", {
-              cwd: "D:\\FoxWOW\\World of Warcraft\\",
-              shell: "cmd.exe",
-            });
-          }
-        }
-      });
-
-      world.stderr.on("data", (error) => {
-        event.reply("START_WORLD_SERVER", error.toString());
-      });
-
-      world.on("close", (code) => {
-        event.reply(
-          "START_WORLD_SERVER",
-          `worldserver[${world.pid}]:exited with code ${code}`
-        );
-      });
-    } else {
-      if (!runningProcess.includes("Wow")) {
-        spawn("Wow.exe", {
-          cwd: "D:\\FoxWOW\\World of Warcraft\\",
-          shell: "cmd.exe",
-        });
+    check.stdout.on("data", (data) => {
+      let words = data.toString().split(/\s+/);
+      if (words.includes("mysqld")) {
+        runningProcess.mysqld = parseInt(words[words.length - 4]);
       }
-    }
-  });
-});
+      if (words.includes("authserver")) {
+        runningProcess.authserver = parseInt(words[words.length - 4]);
+      }
+      if (words.includes("worldserver")) {
+        runningProcess.worldserver = parseInt(words[words.length - 4]);
+      }
+    });
 
-ipcMain.on("START_MYSQL", (event) => {
-  global.mysql = spawn("mysqld.exe", ["--console"], {
-    cwd: "D:\\FoxWOW\\Server\\Database\\bin\\",
-    shell: "cmd.exe",
-    windowsHide: true,
-  });
+    check.stderr.on("data", (error) => {
+      reject(error);
+    });
 
-  mysql.stdout.on("data", (data) => {
-    event.reply("START_MYSQL", data.toString());
+    check.on("close", () => {
+      resolve();
+    });
   });
+}
 
-  mysql.stderr.on("data", (error) => {
-    event.reply("START_MYSQL", error.toString());
-  });
+function startMysqld() {
+  return new Promise((resolve, reject) => {
+    check()
+      .then(() => {
+        if (runningProcess.mysqld === undefined) {
+          let mysqld = spawn("mysqld.exe", ["--console"], {
+            cwd: "D:\\FoxWOW\\Server\\Database\\bin\\",
+            shell: "cmd.exe",
+            windowsHide: true,
+          });
 
-  mysql.on("close", (code) => {
-    event.reply("START_MYSQL", `mysql[${mysql.pid}]: exited with code ${code}`);
-  });
-});
+          mysqld.stdout.on("data", (data) => {
+            win.webContents.send("MYSQLD_CONSOLE", data.toString());
+            if (data.toString().includes("ready for connections")) {
+              resolve();
+            }
+          });
 
-ipcMain.on("START_AUTH_SERVER", (event) => {
-  global.auth = spawn("D:\\FoxWOW\\Server\\Core\\authserver.exe", {
-    cwd: "D:\\FoxWOW\\Server\\Core\\",
-    shell: "cmd.exe",
-    windowsHide: true,
-  });
+          // 不知道为什么stdout的内容会跑到stderr内，怀疑是因为mysqld本身开了子进程的缘故
+          mysqld.stderr.on("data", (error) => {
+            win.webContents.send("MYSQLD_CONSOLE", error.toString());
+            if (error.toString().includes("ready for connections")) {
+              resolve();
+            }
+          });
 
-  auth.stdout.on("data", (data) => {
-    event.reply("START_AUTH_SERVER", data.toString());
-  });
-
-  auth.stderr.on("data", (error) => {
-    event.reply("START_AUTH_SERVER", error.toString());
-  });
-
-  auth.on("close", (code) => {
-    event.reply(
-      "START_AUTH_SERVER",
-      `authserver[${auth.pid}]: exited with code ${code}`
-    );
-  });
-});
-
-ipcMain.on("START_WORLD_SERVER", (event) => {
-  global.world = spawn("worldserver.exe", {
-    cwd: "D:\\FoxWOW\\Server\\Core\\",
-    shell: "cmd.exe",
-    windowsHide: true,
-  });
-
-  world.stdout.on("data", (data) => {
-    event.reply("START_WORLD_SERVER", data.toString());
-    if (data.toString().includes("(worldserver-daemon) ready")) {
-      spawn("Wow.exe", {
-        cwd: "D:\\FoxWOW\\World of Warcraft\\",
-        shell: "cmd.exe",
+          mysqld.on("close", (code) => {
+            win.webContents.send(
+              "MYSQLD_CONSOLE",
+              `mysqld: exited with code ${code}`
+            );
+          });
+        }
+      })
+      .catch(() => {
+        reject(error);
       });
-    }
   });
+}
 
-  world.stderr.on("data", (error) => {
-    event.reply("START_WORLD_SERVER", error.toString());
+function startAuthserver() {
+  return new Promise((resolve, reject) => {
+    check()
+      .then(() => {
+        if (runningProcess.authserver === undefined) {
+          let authserver = spawn("authserver.exe", {
+            cwd: "D:\\FoxWOW\\Server\\Core\\",
+            shell: "cmd.exe",
+            windowsHide: true,
+          });
+
+          authserver.stdout.on("data", (data) => {
+            win.webContents.send("AUTH_SERVER_CONSOLE", data.toString());
+            if (data.toString().includes("Authserver listening to")) {
+              resolve();
+            }
+          });
+
+          authserver.stderr.on("data", (error) => {
+            win.webContents.send("AUTH_SERVER_CONSOLE", error.toString());
+          });
+
+          authserver.on("close", (code) => {
+            win.webContents.send(
+              "AUTH_SERVER_CONSOLE",
+              `authserver: exited with code ${code}`
+            );
+          });
+        }
+      })
+      .catch(() => {
+        reject(error);
+      });
   });
+}
 
-  world.on("close", (code) => {
-    event.reply(
-      "START_WORLD_SERVER",
-      `worldserver[${world.pid}]:exited with code ${code}`
-    );
+function startWorldserver() {
+  return new Promise((resolve, reject) => {
+    check()
+      .then(() => {
+        if (runningProcess.worldserver === undefined) {
+          let worldserver = spawn("worldserver.exe", {
+            cwd: "D:\\FoxWOW\\Server\\Core\\",
+            shell: "cmd.exe",
+            windowsHide: true,
+          });
+
+          worldserver.stdout.on("data", (data) => {
+            win.webContents.send("WORLD_SERVER_CONSOLE", data.toString());
+            if (data.toString().includes("(worldserver-daemon) ready")) {
+              resolve();
+            }
+          });
+
+          worldserver.stderr.on("data", (error) => {
+            win.webContents.send("WORLD_SERVER_CONSOLE", error.toString());
+          });
+
+          worldserver.on("close", (code) => {
+            win.webContents.send(
+              "WORLD_SERVER_CONSOLE",
+              `worldserver: exited with code ${code}`
+            );
+          });
+        }
+      })
+      .catch(() => {
+        reject(error);
+      });
   });
-});
+}
 
-ipcMain.on("START_CLIENT", (event) => {
+function startWow() {
   spawn("Wow.exe", {
     cwd: "D:\\FoxWOW\\World of Warcraft\\",
     shell: "cmd.exe",
   });
+}
+
+function stopMysqld() {
+  check()
+    .then(() => {
+      if (runningProcess.mysqld !== undefined) {
+        process.kill(runningProcess.mysqld);
+        runningProcess.mysqld = undefined;
+      }
+    })
+    .catch();
+}
+
+function stopAuthserver() {
+  check()
+    .then(() => {
+      if (runningProcess.authserver !== undefined) {
+        process.kill(runningProcess.authserver);
+        runningProcess.authserver = undefined;
+      }
+    })
+    .catch();
+}
+
+function stopWorldserver() {
+  check()
+    .then(() => {
+      if (runningProcess.worldserver !== undefined) {
+        process.kill(runningProcess.worldserver);
+        runningProcess.worldserver = undefined;
+      }
+    })
+    .catch();
+}
+
+ipcMain.on("ENTER_GAME", (event) => {
+  Promise.all([startMysqld(), startAuthserver(), startWorldserver()])
+    .then(() => {
+      startWow();
+    })
+    .catch();
 });
 
-ipcMain.on("STOP_SERVICES", (event) => {
-  global.ps = spawn("ps", {
-    shell: "powershell.exe",
-    windowsHide: true,
-  });
-  global.childProcessPids = [];
+ipcMain.on("START_MYSQLD", (event) => {
+  startMysqld();
+});
 
-  ps.stdout.on("data", (data) => {
-    global.words = data.toString().split(/\s+/);
-    if (words.includes("mysqld")) {
-      childProcessPids.push(parseInt(words[words.length - 4]));
-    }
-    if (words.includes("authserver")) {
-      childProcessPids.push(parseInt(words[words.length - 4]));
-    }
-    if (words.includes("worldserver")) {
-      childProcessPids.push(parseInt(words[words.length - 4]));
-    }
-  });
+ipcMain.on("START_AUTH_SERVER", (event) => {
+  startAuthserver();
+});
 
-  ps.on("close", (code) => {
-    childProcessPids.forEach((pid) => {
-      process.kill(pid);
-    });
-  });
+ipcMain.on("START_WORLD_SERVER", (event) => {
+  startWorldserver();
+});
+
+ipcMain.on("START_ALL", (event) => {
+  startMysqld();
+  startAuthserver();
+  startWorldserver();
+});
+
+ipcMain.on("STOP_MYSQLD", (event) => {
+  stopMysqld();
+});
+
+ipcMain.on("STOP_AUTH_SERVER", (event) => {
+  stopAuthserver();
+});
+
+ipcMain.on("STOP_WORLD_SERVER", (event) => {
+  stopWorldserver();
+});
+
+ipcMain.on("STOP_ALL", (event) => {
+  stopMysqld();
+  stopAuthserver();
+  stopWorldserver();
 });

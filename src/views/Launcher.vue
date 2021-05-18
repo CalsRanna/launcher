@@ -32,17 +32,29 @@
                   style="margin-left: 0px;padding: 12px 8px;border-radius: 0 4px 4px 0;border-left-color: #ffffff;"
                 ></el-button>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="mysql">
+                  <el-dropdown-item command="start-mysqld">
                     启动Mysql
                   </el-dropdown-item>
-                  <el-dropdown-item command="auth">
+                  <el-dropdown-item command="start-auth-server">
                     启动Auth Server
                   </el-dropdown-item>
-                  <el-dropdown-item command="world">
+                  <el-dropdown-item command="start-world-server">
                     启动World Server
                   </el-dropdown-item>
-                  <el-dropdown-item command="stop" divided>
-                    停止服务
+                  <el-dropdown-item command="start-all" divided>
+                    启动所有服务
+                  </el-dropdown-item>
+                  <el-dropdown-item command="stop-mysqld" divided>
+                    停止Mysql
+                  </el-dropdown-item>
+                  <el-dropdown-item command="stop-auth-server">
+                    停止Auth Server
+                  </el-dropdown-item>
+                  <el-dropdown-item command="stop-world-server">
+                    停止World Server
+                  </el-dropdown-item>
+                  <el-dropdown-item command="stop-all" divided>
+                    停止所有服务
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -53,22 +65,22 @@
     </el-col>
     <el-col :span="18" style="font-size: 10px;">
       <el-card
-        ref="mysqlCard"
+        ref="mysqldCard"
         style="height: 251px; margin: 0 0 0 16px;overflow: auto;"
       >
-        <div v-html="mysql.replaceAll('\n', '<br>')"></div>
+        <div v-html="mysqld.replaceAll('\n', '<br>')"></div>
       </el-card>
       <el-card
-        ref="authCard"
+        ref="authserverCard"
         style="height: 251px; margin: 16px 0 0 16px;overflow: auto;"
       >
-        <div v-html="auth.replaceAll('\n', '<br>')"></div>
+        <div v-html="authserver.replaceAll('\n', '<br>')"></div>
       </el-card>
       <el-card
-        ref="worldCard"
+        ref="worldserverCard"
         style="height: 251px; margin: 16px 0 0 16px;overflow: auto;"
       >
-        <div v-html="world.replaceAll('\n', '<br>')"></div>
+        <div v-html="worldserver.replaceAll('\n', '<br>')"></div>
       </el-card>
     </el-col>
   </el-row>
@@ -81,9 +93,9 @@ export default {
   data() {
     return {
       version: "AzerothCore",
-      mysql: "",
-      auth: "",
-      world: "",
+      mysqld: "",
+      authserver: "",
+      worldserver: "",
     };
   },
   methods: {
@@ -92,20 +104,33 @@ export default {
     },
     handleCommand(command) {
       switch (command) {
-        case "mysql":
+        case "start-mysqld":
           this.msyql = "";
-          ipcRenderer.send("START_MYSQL");
+          ipcRenderer.send("START_MYSQLD");
           break;
-        case "auth":
+        case "start-auth-server":
           this.auth = "";
           ipcRenderer.send("START_AUTH_SERVER");
           break;
-        case "world":
+        case "start-world-server":
           this.world = "";
           ipcRenderer.send("START_WORLD_SERVER");
           break;
-        case "stop":
-          ipcRenderer.send("STOP_SERVICES");
+        case "start-all":
+          this.world = "";
+          ipcRenderer.send("START_ALL");
+          break;
+        case "stop-mysqld":
+          ipcRenderer.send("STOP_MYSQLD");
+          break;
+        case "stop-auth-server":
+          ipcRenderer.send("STOP_AUTH_SERVER");
+          break;
+        case "stop-world-server":
+          ipcRenderer.send("STOP_WORLD_SERVER");
+          break;
+        case "stop-all":
+          ipcRenderer.send("STOP_ALL");
           break;
         default:
           break;
@@ -113,23 +138,23 @@ export default {
     },
   },
   mounted() {
-    ipcRenderer.on("START_MYSQL", (event, response) => {
-      this.mysql = `${this.mysql}${response}`;
-      let element = this.$refs["mysqlCard"].$el;
+    ipcRenderer.on("MYSQLD_CONSOLE", (event, response) => {
+      this.mysqld = `${this.mysqld}${response}`;
+      let element = this.$refs["mysqldCard"].$el;
       this.$nextTick(() => {
         element.scrollTop = element.scrollHeight;
       });
     });
-    ipcRenderer.on("START_AUTH_SERVER", (event, response) => {
-      this.auth = `${this.auth}${response}`;
-      let element = this.$refs["authCard"].$el;
+    ipcRenderer.on("AUTH_SERVER_CONSOLE", (event, response) => {
+      this.authserver = `${this.authserver}${response}`;
+      let element = this.$refs["authserverCard"].$el;
       this.$nextTick(() => {
         element.scrollTop = element.scrollHeight;
       });
     });
-    ipcRenderer.on("START_WORLD_SERVER", (event, response) => {
-      this.world = `${this.world}${response}`;
-      let element = this.$refs["worldCard"].$el;
+    ipcRenderer.on("WORLD_SERVER_CONSOLE", (event, response) => {
+      this.worldserver = `${this.worldserver}${response}`;
+      let element = this.$refs["worldserverCard"].$el;
       this.$nextTick(() => {
         element.scrollTop = element.scrollHeight;
       });
