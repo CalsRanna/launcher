@@ -63,7 +63,7 @@ export default {
       this.$emit("close");
     },
     async init() {
-      const dotConf = window.require("@calsranna/dot-conf");
+      const dotConf = window.dotConf;
 
       dotConf
         .read("D:\\FoxWoW\\Server\\Core\\configs\\authserver.conf")

@@ -3,6 +3,32 @@
     <el-col :span="6">
       <el-card style="height: 789px;">
         <h3 style="margin: 0px;text-align: center;">魔兽世界</h3>
+        <div style="line-height: 12px;font-size: 12px;">
+          <p>
+            Mysql:
+            {{
+              mysqld.processes.length === 0
+                ? "未启动"
+                : mysqld.processes.toString()
+            }}
+          </p>
+          <p>
+            Auth Server:
+            {{
+              authServer.processes.length === 0
+                ? "未启动"
+                : authServer.processes.toString()
+            }}
+          </p>
+          <p>
+            World Server:
+            {{
+              worldServer.processes.length === 0
+                ? "未启动"
+                : worldServer.processes.toString()
+            }}
+          </p>
+        </div>
         <div style="position: absolute; bottom: 16px;">
           <div style="position: relative;">
             <div style="height: 12px;line-height: 12px;font-size: 12px;">
@@ -32,29 +58,58 @@
                   style="margin-left: 0px;padding: 12px 8px;border-radius: 0 4px 4px 0;border-left-color: #ffffff;"
                 ></el-button>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="start-mysqld">
-                    启动Mysql
+                  <el-dropdown-item>
+                    <el-dropdown placement="right" @command="handleCommand">
+                      <span class="el-dropdown-link">
+                        启动服务
+                        <i class="el-icon-arrow-right"></i>
+                      </span>
+                      <el-dropdown-menu
+                        slot="dropdown"
+                        style="margin-left: 32px;"
+                      >
+                        <el-dropdown-item command="start-mysqld">
+                          启动Mysql
+                        </el-dropdown-item>
+                        <el-dropdown-item command="start-auth-server">
+                          启动Auth Server
+                        </el-dropdown-item>
+                        <el-dropdown-item command="start-world-server">
+                          启动World Server
+                        </el-dropdown-item>
+                        <el-dropdown-item command="start-all" divided>
+                          启动所有服务
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </el-dropdown>
                   </el-dropdown-item>
-                  <el-dropdown-item command="start-auth-server">
-                    启动Auth Server
+                  <el-dropdown-item>
+                    <el-dropdown placement="right" @command="handleCommand">
+                      <span class="el-dropdown-link">
+                        停止服务
+                        <i class="el-icon-arrow-right"></i>
+                      </span>
+                      <el-dropdown-menu
+                        slot="dropdown"
+                        style="margin-left: 32px;"
+                      >
+                        <el-dropdown-item command="stop-mysqld">
+                          停止Mysql
+                        </el-dropdown-item>
+                        <el-dropdown-item command="stop-auth-server">
+                          停止Auth Server
+                        </el-dropdown-item>
+                        <el-dropdown-item command="stop-world-server">
+                          停止World Server
+                        </el-dropdown-item>
+                        <el-dropdown-item command="stop-all" divided>
+                          停止所有服务
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </el-dropdown>
                   </el-dropdown-item>
-                  <el-dropdown-item command="start-world-server">
-                    启动World Server
-                  </el-dropdown-item>
-                  <el-dropdown-item command="start-all" divided>
-                    启动所有服务
-                  </el-dropdown-item>
-                  <el-dropdown-item command="stop-mysqld" divided>
-                    停止Mysql
-                  </el-dropdown-item>
-                  <el-dropdown-item command="stop-auth-server">
-                    停止Auth Server
-                  </el-dropdown-item>
-                  <el-dropdown-item command="stop-world-server">
-                    停止World Server
-                  </el-dropdown-item>
-                  <el-dropdown-item command="stop-all" divided>
-                    停止所有服务
+                  <el-dropdown-item command="start-client" divided>
+                    启动客户端
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -68,19 +123,19 @@
         ref="mysqldCard"
         style="height: 251px; margin: 0 0 0 16px;overflow: auto;"
       >
-        <div v-html="mysqld.replaceAll('\n', '<br>')"></div>
+        <div v-html="mysqld.log.replaceAll('\n', '<br>')"></div>
       </el-card>
       <el-card
-        ref="authserverCard"
+        ref="authServerCard"
         style="height: 251px; margin: 16px 0 0 16px;overflow: auto;"
       >
-        <div v-html="authserver.replaceAll('\n', '<br>')"></div>
+        <div v-html="authServer.log.replaceAll('\n', '<br>')"></div>
       </el-card>
       <el-card
-        ref="worldserverCard"
+        ref="worldServerCard"
         style="height: 251px; margin: 16px 0 0 16px;overflow: auto;"
       >
-        <div v-html="worldserver.replaceAll('\n', '<br>')"></div>
+        <div v-html="worldServer.log.replaceAll('\n', '<br>')"></div>
       </el-card>
     </el-col>
   </el-row>
@@ -88,17 +143,25 @@
 
 <script>
 const ipcRenderer = window.ipcRenderer;
+import { MessageBox } from "element-ui";
+import { mapState, mapActions } from "vuex";
 
 export default {
   data() {
     return {
       version: "AzerothCore",
-      mysqld: "",
-      authserver: "",
-      worldserver: "",
     };
   },
+  computed: {
+    ...mapState("launcher", ["mysqld", "authServer", "worldServer"]),
+  },
   methods: {
+    ...mapActions("launcher", [
+      "updateMysqld",
+      "updateAuthServer",
+      "updateWorldServer",
+      "checkProcesses",
+    ]),
     enterGame() {
       ipcRenderer.send("ENTER_GAME");
     },
@@ -120,6 +183,10 @@ export default {
           this.world = "";
           ipcRenderer.send("START_ALL");
           break;
+        case "start-client":
+          this.world = "";
+          ipcRenderer.send("START_CLIENT");
+          break;
         case "stop-mysqld":
           ipcRenderer.send("STOP_MYSQLD");
           break;
@@ -138,25 +205,41 @@ export default {
     },
   },
   mounted() {
-    ipcRenderer.on("MYSQLD_CONSOLE", (event, response) => {
-      this.mysqld = `${this.mysqld}${response}`;
+    this.$nextTick(() => {
       let element = this.$refs["mysqldCard"].$el;
+      element.scrollTop = element.scrollHeight;
+      element = this.$refs["authServerCard"].$el;
+      element.scrollTop = element.scrollHeight;
+      element = this.$refs["worldServerCard"].$el;
+      element.scrollTop = element.scrollHeight;
+    });
+    ipcRenderer.on("CHECK_PROCESSES", (event, response) => {
+      this.checkProcesses(response);
+    });
+    ipcRenderer.on("MYSQLD_CONSOLE", (event, response) => {
+      this.updateMysqld(response);
       this.$nextTick(() => {
+        let element = this.$refs["mysqldCard"].$el;
         element.scrollTop = element.scrollHeight;
       });
     });
     ipcRenderer.on("AUTH_SERVER_CONSOLE", (event, response) => {
-      this.authserver = `${this.authserver}${response}`;
-      let element = this.$refs["authserverCard"].$el;
+      this.updateAuthServer(response);
       this.$nextTick(() => {
+        let element = this.$refs["authServerCard"].$el;
         element.scrollTop = element.scrollHeight;
       });
     });
     ipcRenderer.on("WORLD_SERVER_CONSOLE", (event, response) => {
-      this.worldserver = `${this.worldserver}${response}`;
-      let element = this.$refs["worldserverCard"].$el;
+      this.updateWorldServer(response);
       this.$nextTick(() => {
+        let element = this.$refs["worldServerCard"].$el;
         element.scrollTop = element.scrollHeight;
+      });
+    });
+    ipcRenderer.on("GLOBAL_MESSAGE", (event, response) => {
+      MessageBox.alert(response, "未知错误", {
+        confirmButtonText: "确定",
       });
     });
   },
