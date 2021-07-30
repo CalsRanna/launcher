@@ -2,60 +2,32 @@ export default {
   namespaced: true,
   state() {
     return {
-      mysqld: {
-        processes: [],
-        log: "",
+      process: {
+        mysql: [],
+        authServer: [],
+        worldServer: [],
       },
-      authServer: {
-        processes: [],
-        log: "",
-      },
-      worldServer: {
-        processes: [],
-        log: "",
+      console: {
+        mysql: "",
+        authServer: "",
+        worldServer: "",
       },
     };
   },
   actions: {
-    updateMysqld({ commit }, payload) {
-      return new Promise((resolve) => {
-        commit("UPDATE_MYSQLD", payload);
-        resolve();
-      });
+    updateProcess({ commit }, payload) {
+      commit("UPDATE_PROCESS", payload);
     },
-    updateAuthServer({ commit }, payload) {
-      return new Promise((resolve) => {
-        commit("UPDATE_AUTH_SERVER", payload);
-        resolve();
-      });
-    },
-    updateWorldServer({ commit }, payload) {
-      return new Promise((resolve) => {
-        commit("UPDATE_WORLD_SERVER", payload);
-        resolve();
-      });
-    },
-    checkProcesses({ commit }, payload) {
-      return new Promise((resolve) => {
-        commit("CHECK_PROCESSES", payload);
-        resolve();
-      });
+    updateConsole({ commit }, payload) {
+      commit("UPDATE_CONSOLE", payload);
     },
   },
   mutations: {
-    UPDATE_MYSQLD(state, payload) {
-      state.mysqld.log = `${state.mysqld.log}${payload}`;
+    UPDATE_PROCESS(state, payload) {
+      state.process[payload.channel] = payload.process;
     },
-    UPDATE_AUTH_SERVER(state, payload) {
-      state.authServer.log = `${state.authServer.log}${payload}`;
-    },
-    UPDATE_WORLD_SERVER(state, payload) {
-      state.worldServer.log = `${state.worldServer.log}${payload}`;
-    },
-    CHECK_PROCESSES(state, payload) {
-      state.mysqld.processes = payload.mysqld;
-      state.authServer.processes = payload.authserver;
-      state.worldServer.processes = payload.worldserver;
+    UPDATE_CONSOLE(state, payload) {
+      state.console[payload.channel] += payload.message;
     },
   },
 };

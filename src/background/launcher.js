@@ -3,9 +3,9 @@ import { ipcMain } from "electron";
 const { spawn } = require("child_process");
 
 global.runningProcess = {
-  mysqld: [],
-  authserver: [],
-  worldserver: [],
+  mysql: [],
+  authServer: [],
+  worldServer: [],
 };
 
 String.prototype.toFirstUpperWord = function() {
@@ -13,13 +13,14 @@ String.prototype.toFirstUpperWord = function() {
 };
 
 function log(channel, message, formatted = true) {
-  channel = `${channel}_CONSOLE`;
-  if (formatted) {
-    win.webContents.send(channel, message);
-  } else {
+  if (!formatted) {
     message = `${new Date().toLocaleString()} [Launcher] ${message}\n`;
-    win.webContents.send(channel, message);
   }
+  win.webContents.send("CHILD_PROCESS_STDOUT", { channel, message });
+}
+
+function reply(channel, process) {
+  win.webContents.send("CHILD_PROCESS_PIDS", { channel, process });
 }
 
 function throwError(error) {
@@ -29,46 +30,45 @@ function throwError(error) {
 function check() {
   return new Promise((resolve, reject) => {
     runningProcess = {
-      mysqld: [],
-      authserver: [],
-      worldserver: [],
+      mysql: [],
+      authServer: [],
+      worldServer: [],
     };
 
-    let check = spawn("ps", {
+    let ps = spawn("ps", {
       shell: "powershell.exe",
       windowsHide: true,
     });
 
-    check.stdout.on("data", (data) => {
+    ps.stdout.on("data", (data) => {
       let words = data.toString().split(/\s+/);
       let process = parseInt(words[words.length - 4]);
 
       if (
         words.includes("mysqld") &&
-        runningProcess.mysqld.includes(process) === false
+        runningProcess.mysql.includes(process) === false
       ) {
-        runningProcess.mysqld.push(process);
+        runningProcess.mysql.push(process);
       }
       if (
         words.includes("authserver") &&
-        runningProcess.authserver.includes(process) === false
+        runningProcess.authServer.includes(process) === false
       ) {
-        runningProcess.authserver.push(process);
+        runningProcess.authServer.push(process);
       }
       if (
         words.includes("worldserver") &&
-        runningProcess.worldserver.includes(process) === false
+        runningProcess.worldServer.includes(process) === false
       ) {
-        runningProcess.worldserver.push(process);
+        runningProcess.worldServer.push(process);
       }
     });
 
-    check.stderr.on("data", (error) => {
+    ps.stderr.on("data", (error) => {
       reject(error);
     });
 
-    check.on("close", () => {
-      win.webContents.send("CHECK_PROCESSES", runningProcess);
+    ps.on("close", () => {
       resolve();
     });
   });
@@ -92,128 +92,160 @@ function kill(pids) {
   });
 }
 
-function startMysqld() {
-  return new Promise((resolve, reject) => {
-    check()
-      .then(() => {
-        if (runningProcess.mysqld.length === 0) {
-          log("MYSQLD", "正在启动Mysql", false);
-          let mysqld = spawn("mysqld.exe", ["--console"], {
-            cwd: "D:\\FoxWOW\\Server\\Database\\bin\\",
-            shell: "cmd.exe",
-            windowsHide: true,
-          });
+ipcMain.on("MANAGE_SERVICE", (event, payload) => {
+  switch (payload.service) {
+    case "mysql":
+      payload.status ? startMysql() : stopMysql();
+      break;
+    case "authServer":
+      payload.status ? startAuthServer() : stopAuthServer();
+      break;
+    case "worldServer":
+      payload.status ? startWorldServer() : stopWorldServer();
+      break;
+    default:
+      break;
+  }
+});
 
-          mysqld.stdout.on("data", (data) => {
-            log("MYSQLD", data.toString());
-            if (data.toString().includes("ready for connections")) {
-              check().then(() => {
-                resolve(runningProcess.mysqld);
-              });
-            }
-          });
+ipcMain.on("ENTER_GAME", () => {
+  check().then(async () => {
+    await startMysql();
+    startAuthServer();
+    startWorldServer();
+    startWow();
+  });
+});
 
-          // 不知道为什么stdout的内容会跑到stderr内，怀疑是因为mysqld本身开了子进程的缘故
-          mysqld.stderr.on("data", (error) => {
-            log("MYSQLD", error.toString());
-            if (error.toString().includes("ready for connections")) {
-              check().then(() => {
-                resolve(runningProcess.mysqld);
-              });
-            }
-          });
-        } else {
-          log("MYSQLD", `Mysql正在运行中`, false);
-          resolve(runningProcess.mysqld);
-        }
-      })
-      .catch((error) => {
-        log("MYSQLD", error.toString());
-        check();
-        reject(error);
+ipcMain.on("START_ALL", () => {
+  check().then(async () => {
+    await startMysql();
+    startAuthServer();
+    startWorldServer();
+  });
+});
+
+ipcMain.on("STOP_ALL", () => {
+  check().then(() => {
+    stopMysql();
+    stopAuthServer();
+    stopWorldServer();
+  });
+});
+
+ipcMain.on("START_CLIENT", () => {
+  startWow();
+});
+
+function startMysql() {
+  return new Promise(async (resolve, reject) => {
+    await check();
+
+    if (runningProcess.mysql.length === 0) {
+      log("mysql", "正在启动Mysql", false);
+      let mysql = spawn("mysqld.exe", ["--console"], {
+        cwd: "D:\\FoxWOW\\Server\\Database\\bin\\",
+        shell: "cmd.exe",
+        windowsHide: true,
       });
+
+      mysql.stdout.on("data", async (data) => {
+        log("mysql", data.toString());
+        if (data.toString().includes("ready for connections")) {
+          await check();
+          reply("mysql", runningProcess.mysql);
+          resolve();
+        }
+      });
+
+      // 不知道为什么stdout的内容会跑到stderr内，怀疑是因为mysql本身开了子进程的缘故
+      mysql.stderr.on("data", async (error) => {
+        log("mysql", error.toString());
+        if (error.toString().includes("ready for connections")) {
+          await check();
+          reply("mysql", runningProcess.mysql);
+          resolve();
+        }
+      });
+    } else {
+      log("mysql", `Mysql正在运行中`, false);
+      reply("mysql", runningProcess.mysql);
+      resolve();
+    }
   });
 }
 
-function startAuthserver() {
-  return new Promise((resolve, reject) => {
-    check()
-      .then(() => {
-        if (runningProcess.authserver.length === 0) {
-          log("AUTH_SERVER", "正在启动Auth Server", false);
-          let authserver = spawn("authserver.exe", {
-            cwd: "D:\\FoxWOW\\Server\\Core\\",
-            shell: "cmd.exe",
-            windowsHide: true,
-          });
+function startAuthServer() {
+  return new Promise(async (resolve, reject) => {
+    await check();
 
-          authserver.stdout.on("data", (data) => {
-            log("AUTH_SERVER", data.toString());
-            if (data.toString().includes("Authserver listening to")) {
-              check().then(() => {
-                resolve(runningProcess.authserver);
-              });
-            }
-          });
-
-          authserver.stderr.on("data", (error) => {
-            log("AUTH_SERVER", error.toString());
-            if (error.toString().includes("Authserver listening to")) {
-              check().then(() => {
-                resolve(runningProcess.authserver);
-              });
-            }
-          });
-        } else {
-          log("AUTH_SERVER", `Auth Server正在运行中`, false);
-          resolve(runningProcess.authserver);
-        }
-      })
-      .catch((error) => {
-        log("AUTH_SERVER", error.toString());
-        reject(error);
+    if (runningProcess.authServer.length === 0) {
+      log("authServer", "正在启动Auth Server", false);
+      let authServer = spawn("authserver.exe", {
+        cwd: "D:\\FoxWOW\\Server\\Core\\",
+        shell: "cmd.exe",
+        windowsHide: true,
       });
+
+      authServer.stdout.on("data", async (data) => {
+        log("authServer", data.toString());
+        if (data.toString().includes("Authserver listening to")) {
+          await check();
+          reply("authServer", runningProcess.authServer);
+          resolve();
+        }
+      });
+
+      authServer.stderr.on("data", async (error) => {
+        log("authServer", error.toString());
+        if (error.toString().includes("Authserver listening to")) {
+          await check();
+          reply("authServer", runningProcess.authServer);
+          resolve();
+        }
+      });
+    } else {
+      log("authServer", `Auth Server正在运行中`, false);
+      reply("authServer", runningProcess.authServer);
+      resolve();
+    }
   });
 }
 
-function startWorldserver() {
-  return new Promise((resolve, reject) => {
-    check()
-      .then(() => {
-        if (runningProcess.worldserver.length === 0) {
-          log("WORLD_SERVER", "正在启动World Server", false);
-          let worldserver = spawn("worldserver.exe", {
-            cwd: "D:\\FoxWOW\\Server\\Core\\",
-            shell: "cmd.exe",
-            windowsHide: true,
-          });
+function startWorldServer() {
+  return new Promise(async (resolve, reject) => {
+    await check();
 
-          worldserver.stdout.on("data", (data) => {
-            log("WORLD_SERVER", data.toString());
-            if (data.toString().includes("(worldserver-daemon) ready")) {
-              check().then(() => {
-                resolve(runningProcess.worldserver);
-              });
-            }
-          });
-
-          worldserver.stderr.on("data", (error) => {
-            log("WORLD_SERVER", error.toString());
-            if (error.toString().includes("(worldserver-daemon) ready")) {
-              check().then(() => {
-                resolve(runningProcess.worldserver);
-              });
-            }
-          });
-        } else {
-          log("WORLD_SERVER", `World Server正在运行中`, false);
-          resolve(runningProcess.worldserver);
-        }
-      })
-      .catch((error) => {
-        log("WORLD_SERVER", error.toString());
-        reject(error);
+    if (runningProcess.worldServer.length === 0) {
+      log("worldServer", "正在启动World Server", false);
+      let worldServer = spawn("worldserver.exe", {
+        cwd: "D:\\FoxWOW\\Server\\Core\\",
+        shell: "cmd.exe",
+        windowsHide: true,
       });
+
+      worldServer.stdout.on("data", async (data) => {
+        log("worldServer", data.toString());
+        if (data.toString().includes("World initialized in")) {
+          await check();
+          reply("worldServer", runningProcess.worldServer);
+          resolve();
+        }
+      });
+
+      worldServer.stderr.on("data", async (error) => {
+        log("worldServer", error.toString());
+        if (error.toString().includes("World initialized in")) {
+          await check();
+          reply("worldServer", runningProcess.worldServer);
+          resolve();
+        }
+      });
+    } else {
+      log("worldServer", `World Server正在运行中`, false);
+      reply("worldServer", runningProcess.worldServer);
+      resolve();
+    }
   });
 }
 
@@ -224,100 +256,41 @@ function startWow() {
   });
 }
 
-function stopMysqld() {
-  check().then(() => {
-    kill(runningProcess.mysqld)
-      .then(() => {
-        runningProcess.mysqld = [];
-        log("MYSQLD", "Mysql已停止", false);
-      })
-      .catch((error) => {
-        log("MYSQLD", `Mysql${error}`, false);
-      });
-  });
+async function stopMysql() {
+  await check();
+
+  try {
+    await kill(runningProcess.mysql);
+    runningProcess.mysql = [];
+    log("mysql", "Mysql已停止", false);
+  } catch (error) {
+    log("mysql", `Mysql${error}`, false);
+  }
+  reply("mysql", runningProcess.mysql);
 }
 
-function stopAuthserver() {
-  check().then(() => {
-    kill(runningProcess.authserver)
-      .then(() => {
-        runningProcess.authserver = [];
-        log("AUTH_SERVER", "Auth Server已停止", false);
-      })
-      .catch((error) => {
-        log("AUTH_SERVER", `Auth Server${error}`, false);
-      });
-  });
+async function stopAuthServer() {
+  await check();
+
+  try {
+    await kill(runningProcess.authServer);
+    runningProcess.authServer = [];
+    log("authServer", "Auth Server已停止", false);
+  } catch (error) {
+    log("authServer", `Auth Server${error}`, false);
+  }
+  reply("authServer", runningProcess.authServer);
 }
 
-function stopWorldserver() {
-  check().then(() => {
-    kill(runningProcess.worldserver)
-      .then(() => {
-        runningProcess.worldserver = [];
-        log("WORLD_SERVER", "World Server已停止", false);
-      })
-      .catch((error) => {
-        log("WORLD_SERVER", `World Server${error}`, false);
-      });
-  });
+async function stopWorldServer() {
+  await check();
+
+  try {
+    await kill(runningProcess.worldServer);
+    runningProcess.worldServer = [];
+    log("worldServer", "World Server已停止", false);
+  } catch (error) {
+    log("worldServer", `World Server${error}`, false);
+  }
+  reply("worldServer", runningProcess.worldServer);
 }
-
-ipcMain.on("ENTER_GAME", async (event) => {
-  await startMysqld();
-  await startAuthserver();
-  await startWorldserver();
-  startWow();
-});
-
-ipcMain.on("START_MYSQLD", (event) => {
-  startMysqld().then((process) => {
-    event.reply("START_MYSQLD", process);
-  });
-});
-
-ipcMain.on("START_AUTH_SERVER", (event) => {
-  startAuthserver().then((process) => {
-    event.reply("START_AUTH_SERVER", process);
-  });
-});
-
-ipcMain.on("START_WORLD_SERVER", (event) => {
-  startWorldserver().then((process) => {
-    event.reply("START_WORLD_SERVER", process);
-  });
-});
-
-ipcMain.on("START_ALL", (event) => {
-  startMysqld().then((process) => {
-    event.reply("START_MYSQLD", process);
-  });
-  startAuthserver().then((process) => {
-    event.reply("START_AUTH_SERVER", process);
-  });
-  startWorldserver().then((process) => {
-    event.reply("START_WORLD_SERVER", process);
-  });
-});
-
-ipcMain.on("START_CLIENT", (event) => {
-  startWow();
-});
-
-ipcMain.on("STOP_MYSQLD", (event) => {
-  stopMysqld();
-});
-
-ipcMain.on("STOP_AUTH_SERVER", (event) => {
-  stopAuthserver();
-});
-
-ipcMain.on("STOP_WORLD_SERVER", (event) => {
-  stopWorldserver();
-});
-
-ipcMain.on("STOP_ALL", (event) => {
-  stopMysqld();
-  stopAuthserver();
-  stopWorldserver();
-});

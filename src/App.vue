@@ -15,6 +15,13 @@
         <el-button
           icon="el-icon-edit"
           style="margin-left: 8px;"
+          @click="openFoxy"
+        >
+          Foxy
+        </el-button>
+        <el-button
+          icon="el-icon-edit"
+          style="margin-left: 8px;"
           @click="openConfigEditor"
         >
           配置编辑
@@ -53,6 +60,7 @@ export default {
     exit() {
       ipcRenderer.send("EXIT_APP");
     },
+    openFoxy() {},
     openConfigEditor() {
       this.editorVisible = true;
     },

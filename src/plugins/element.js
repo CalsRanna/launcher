@@ -19,6 +19,7 @@ import {
   Option,
   Row,
   Select,
+  Switch,
   TabPane,
   Tabs,
 } from "element-ui";
@@ -42,5 +43,6 @@ Vue.use(MenuItem);
 Vue.use(Option);
 Vue.use(Row);
 Vue.use(Select);
+Vue.use(Switch);
 Vue.use(TabPane);
 Vue.use(Tabs);
