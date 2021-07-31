@@ -40,9 +40,12 @@
 
 <script>
 const ipcRenderer = window.ipcRenderer;
+import { MessageBox } from "element-ui";
+import { mapActions } from "vuex";
 
 export default {
   methods: {
+    ...mapActions("launcher", ["updateProcess", "updateConsole"]),
     exit() {
       ipcRenderer.send("EXIT_APP");
     },
@@ -52,6 +55,23 @@ export default {
     navigate(module) {
       this.$router.push(`/${module}`).then(() => {});
     },
+  },
+  mounted() {
+    ipcRenderer.on("CHILD_PROCESS_PIDS", (event, payload) => {
+      this.updateProcess(payload);
+    });
+    ipcRenderer.on("CHILD_PROCESS_STDOUT", (event, payload) => {
+      this.updateConsole(payload);
+      this.$nextTick(() => {
+        let element = this.$refs[payload.channel].$el;
+        element.scrollTop = element.scrollHeight;
+      });
+    });
+    ipcRenderer.on("GLOBAL_MESSAGE", (event, response) => {
+      MessageBox.alert(response, "未知错误", {
+        confirmButtonText: "确定",
+      });
+    });
   },
 };
 </script>

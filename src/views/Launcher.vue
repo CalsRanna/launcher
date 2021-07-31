@@ -120,8 +120,7 @@
 
 <script>
 const ipcRenderer = window.ipcRenderer;
-import { MessageBox } from "element-ui";
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 
 export default {
   data() {
@@ -138,7 +137,6 @@ export default {
     ...mapState("launcher", ["process", "console"]),
   },
   methods: {
-    ...mapActions("launcher", ["updateProcess", "updateConsole"]),
     handleChange(service, status) {
       ipcRenderer.send("MANAGE_SERVICE", { service, status });
     },
@@ -175,21 +173,6 @@ export default {
       element.scrollTop = element.scrollHeight;
       element = this.$refs["worldServer"].$el;
       element.scrollTop = element.scrollHeight;
-    });
-    ipcRenderer.on("CHILD_PROCESS_PIDS", (event, payload) => {
-      this.updateProcess(payload);
-    });
-    ipcRenderer.on("CHILD_PROCESS_STDOUT", (event, payload) => {
-      this.updateConsole(payload);
-      this.$nextTick(() => {
-        let element = this.$refs[payload.channel].$el;
-        element.scrollTop = element.scrollHeight;
-      });
-    });
-    ipcRenderer.on("GLOBAL_MESSAGE", (event, response) => {
-      MessageBox.alert(response, "未知错误", {
-        confirmButtonText: "确定",
-      });
     });
   },
 };
