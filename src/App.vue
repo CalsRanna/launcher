@@ -9,70 +9,49 @@
         </el-button>
       </div>
       <el-header class="header">
-        <el-button icon="el-icon-s-grid" @click="navigate('launcher')"
-          >登录游戏</el-button
-        >
-        <el-button
-          icon="el-icon-edit"
-          style="margin-left: 8px;"
-          @click="openFoxy"
-        >
-          Foxy
+        <el-button icon="el-icon-s-grid" @click="navigate('launcher')">
+          登录游戏
         </el-button>
         <el-button
-          icon="el-icon-edit"
           style="margin-left: 8px;"
-          @click="openConfigEditor"
+          @click="navigate('configuration-editor')"
         >
           配置编辑
         </el-button>
-        <el-button
-          icon="el-icon-setting"
-          style="margin-left: 8px;"
-          @click="navigate('setting')"
-        >
+        <el-button style="margin-left: 8px;" @click="navigate('setting')">
           设置
+        </el-button>
+        <el-button style="margin-left: 8px;" @click="open('foxy')">
+          Foxy
+        </el-button>
+        <el-button style="margin-left: 8px;" @click="open('mpq-editor')">
+          MPQ Editor
+        </el-button>
+        <el-button style="margin-left: 8px;" @click="open('navicat')">
+          Navicat
         </el-button>
       </el-header>
       <el-main>
         <router-view></router-view>
       </el-main>
     </el-container>
-    <configuration-editor
-      :visible="editorVisible"
-      @close="closeConfigEditor"
-    ></configuration-editor>
   </div>
 </template>
 
 <script>
 const ipcRenderer = window.ipcRenderer;
 
-import ConfigurationEditor from "@/components/ConfigurationEditor";
-
 export default {
-  data() {
-    return {
-      editorVisible: false,
-    };
-  },
   methods: {
     exit() {
       ipcRenderer.send("EXIT_APP");
     },
-    openFoxy() {},
-    openConfigEditor() {
-      this.editorVisible = true;
-    },
-    closeConfigEditor() {
-      this.editorVisible = false;
+    open(software) {
+      ipcRenderer.send("OPEN_SOFTWARE", { software });
     },
     navigate(module) {
       this.$router.push(`/${module}`).then(() => {});
     },
-  },
-  components: {
-    ConfigurationEditor,
   },
 };
 </script>
@@ -81,6 +60,7 @@ export default {
 body {
   margin: 0;
   padding: 0 16px 16px 16px;
+  font-family: "Roboto Mono", monospace;
 }
 .el-main {
   padding: 0 !important;

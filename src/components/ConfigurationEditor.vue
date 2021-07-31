@@ -26,8 +26,14 @@
         <el-card>
           <el-row :gutter="16" style="max-height: 60vh;overflow: auto;">
             <el-form :model="worldserverConfiguration">
-              <el-col :span="12" :key="label" v-for="label in worldLabels">
-                <el-form-item :label="label">
+              <el-col :span="8" :key="label" v-for="label in worldLabels">
+                <el-form-item>
+                  <span
+                    slot="label"
+                    style="width: 100%;overflow: hidden;white-space: nowrap;text-overflow: clip "
+                  >
+                    {{ label }}
+                  </span>
                   <el-input
                     v-model="worldserverConfiguration[label]"
                     :placeholder="label"

@@ -137,6 +137,22 @@ ipcMain.on("START_CLIENT", () => {
   startWow();
 });
 
+ipcMain.on("OPEN_SOFTWARE", (event, payload) => {
+  switch (payload.software) {
+    case "foxy":
+      startFoxy();
+      break;
+    case "mpq-editor":
+      startMpqEditor();
+      break;
+    case "navicat":
+      startNavicat();
+      break;
+    default:
+      break;
+  }
+});
+
 function startMysql() {
   return new Promise(async (resolve, reject) => {
     await check();
@@ -293,4 +309,25 @@ async function stopWorldServer() {
     log("worldServer", `World Server${error}`, false);
   }
   reply("worldServer", runningProcess.worldServer);
+}
+
+function startFoxy() {
+  spawn("Foxy.exe", {
+    cwd: "D:\\FoxWOW\\Tools\\",
+    shell: "cmd.exe",
+  });
+}
+
+function startMpqEditor() {
+  spawn("MPQEditor.exe", {
+    cwd: "D:\\FoxWOW\\Tools\\MPQEditor\\",
+    shell: "cmd.exe",
+  });
+}
+
+function startNavicat() {
+  spawn("navicat.exe", {
+    cwd: "D:\\FoxWOW\\Tools\\Navicat Premium\\",
+    shell: "cmd.exe",
+  });
 }

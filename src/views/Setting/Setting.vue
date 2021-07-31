@@ -7,17 +7,13 @@
           style="border-right: none !important"
           @select="navigate"
         >
-          <el-menu-item index="app">
+          <el-menu-item index="software">
             <i class="el-icon-menu"></i>
             <span slot="title">应用</span>
           </el-menu-item>
           <el-menu-item index="game">
             <i class="el-icon-document"></i>
             <span slot="title">游戏设置</span>
-          </el-menu-item>
-          <el-menu-item index="conf">
-            <i class="el-icon-setting"></i>
-            <span slot="title">配置</span>
           </el-menu-item>
           <el-menu-item index="about" style="border-top: solid 1px #DCDFE6">
             <i class="el-icon-warning-outline"></i>
