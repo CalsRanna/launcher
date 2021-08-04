@@ -21,21 +21,6 @@
           </el-row>
           <el-row :gutter="16" style="margin-top: 8px;">
             <el-col :span="16">
-              Auth Server:
-              <span v-if="process.authServer.length > 0">
-                [{{ process.authServer.toString() }}]
-              </span>
-            </el-col>
-            <el-col :span="8" style="text-align:right;">
-              <el-switch
-                v-model="status.authServer"
-                @change="(status) => handleChange('authServer', status)"
-              >
-              </el-switch>
-            </el-col>
-          </el-row>
-          <el-row :gutter="16" style="margin-top: 8px;">
-            <el-col :span="16">
               World Server:
               <span v-if="process.worldServer.length > 0">
                 [{{ process.worldServer.toString() }}]
@@ -45,6 +30,21 @@
               <el-switch
                 v-model="status.worldServer"
                 @change="(status) => handleChange('worldServer', status)"
+              >
+              </el-switch>
+            </el-col>
+          </el-row>
+          <el-row :gutter="16" style="margin-top: 8px;">
+            <el-col :span="16">
+              Auth Server:
+              <span v-if="process.authServer.length > 0">
+                [{{ process.authServer.toString() }}]
+              </span>
+            </el-col>
+            <el-col :span="8" style="text-align:right;">
+              <el-switch
+                v-model="status.authServer"
+                @change="(status) => handleChange('authServer', status)"
               >
               </el-switch>
             </el-col>
@@ -103,16 +103,16 @@
         <div v-html="console.mysql.replaceAll('\n', '<br>')"></div>
       </el-card>
       <el-card
-        ref="authServer"
-        style="height: 251px; margin: 16px 0 0 16px;overflow: auto;"
-      >
-        <div v-html="console.authServer.replaceAll('\n', '<br>')"></div>
-      </el-card>
-      <el-card
         ref="worldServer"
         style="height: 251px; margin: 16px 0 0 16px;overflow: auto;"
       >
         <div v-html="console.worldServer.replaceAll('\n', '<br>')"></div>
+      </el-card>
+      <el-card
+        ref="authServer"
+        style="height: 251px; margin: 16px 0 0 16px;overflow: auto;"
+      >
+        <div v-html="console.authServer.replaceAll('\n', '<br>')"></div>
       </el-card>
     </el-col>
   </el-row>
@@ -120,41 +120,41 @@
 
 <script>
 const ipcRenderer = window.ipcRenderer;
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
 
 export default {
   data() {
     return {
-      status: {
-        mysql: false,
-        authServer: false,
-        worldServer: false,
-      },
       version: "AzerothCore",
     };
   },
   computed: {
-    ...mapState("launcher", ["process", "console"]),
+    ...mapState("launcher", ["status", "process", "console"]),
   },
   methods: {
+    ...mapActions("launcher", ["updateStatus"]),
     handleChange(service, status) {
+      this.updateStatus({ service, status });
       ipcRenderer.send("MANAGE_SERVICE", { service, status });
     },
     enterGame() {
+      this.updateStatus({ service: "mysql", status: true });
+      this.updateStatus({ service: "worldServer", status: true });
+      this.updateStatus({ service: "authServer", status: true });
       ipcRenderer.send("ENTER_GAME");
     },
     handleCommand(command) {
       switch (command) {
         case "start-all":
-          this.status.mysql = true;
-          this.status.authServer = true;
-          this.status.worldServer = true;
+          this.updateStatus({ service: "mysql", status: true });
+          this.updateStatus({ service: "worldServer", status: true });
+          this.updateStatus({ service: "authServer", status: true });
           ipcRenderer.send("START_ALL");
           break;
         case "stop-all":
-          this.status.mysql = false;
-          this.status.authServer = false;
-          this.status.worldServer = false;
+          this.updateStatus({ service: "mysql", status: false });
+          this.updateStatus({ service: "worldServer", status: false });
+          this.updateStatus({ service: "authServer", status: false });
           ipcRenderer.send("STOP_ALL");
           break;
         case "start-client":
@@ -169,10 +169,16 @@ export default {
     this.$nextTick(() => {
       let element = this.$refs["mysql"].$el;
       element.scrollTop = element.scrollHeight;
-      element = this.$refs["authServer"].$el;
-      element.scrollTop = element.scrollHeight;
       element = this.$refs["worldServer"].$el;
       element.scrollTop = element.scrollHeight;
+      element = this.$refs["authServer"].$el;
+      element.scrollTop = element.scrollHeight;
+    });
+    ipcRenderer.on("CHILD_PROCESS_STDOUT", (event, payload) => {
+      this.$nextTick(() => {
+        let element = this.$refs[payload.channel].$el;
+        element.scrollTop = element.scrollHeight;
+      });
     });
   },
 };

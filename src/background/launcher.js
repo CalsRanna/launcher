@@ -51,16 +51,16 @@ function check() {
         runningProcess.mysql.push(process);
       }
       if (
-        words.includes("authserver") &&
-        runningProcess.authServer.includes(process) === false
-      ) {
-        runningProcess.authServer.push(process);
-      }
-      if (
         words.includes("worldserver") &&
         runningProcess.worldServer.includes(process) === false
       ) {
         runningProcess.worldServer.push(process);
+      }
+      if (
+        words.includes("authserver") &&
+        runningProcess.authServer.includes(process) === false
+      ) {
+        runningProcess.authServer.push(process);
       }
     });
 
@@ -97,11 +97,11 @@ ipcMain.on("MANAGE_SERVICE", (event, payload) => {
     case "mysql":
       payload.status ? startMysql() : stopMysql();
       break;
-    case "authServer":
-      payload.status ? startAuthServer() : stopAuthServer();
-      break;
     case "worldServer":
       payload.status ? startWorldServer() : stopWorldServer();
+      break;
+    case "authServer":
+      payload.status ? startAuthServer() : stopAuthServer();
       break;
     default:
       break;
@@ -111,8 +111,8 @@ ipcMain.on("MANAGE_SERVICE", (event, payload) => {
 ipcMain.on("ENTER_GAME", () => {
   check().then(async () => {
     await startMysql();
-    startAuthServer();
     startWorldServer();
+    startAuthServer();
     startWow();
   });
 });
@@ -120,16 +120,16 @@ ipcMain.on("ENTER_GAME", () => {
 ipcMain.on("START_ALL", () => {
   check().then(async () => {
     await startMysql();
-    startAuthServer();
     startWorldServer();
+    startAuthServer();
   });
 });
 
 ipcMain.on("STOP_ALL", () => {
   check().then(() => {
-    stopMysql();
     stopAuthServer();
     stopWorldServer();
+    stopMysql();
   });
 });
 
@@ -184,45 +184,7 @@ function startMysql() {
         }
       });
     } else {
-      log("mysql", `Mysql正在运行中`, false);
       reply("mysql", runningProcess.mysql);
-      resolve();
-    }
-  });
-}
-
-function startAuthServer() {
-  return new Promise(async (resolve, reject) => {
-    await check();
-
-    if (runningProcess.authServer.length === 0) {
-      log("authServer", "正在启动Auth Server", false);
-      let authServer = spawn("authserver.exe", {
-        cwd: "D:\\FoxWOW\\Server\\Core\\",
-        shell: "cmd.exe",
-        windowsHide: true,
-      });
-
-      authServer.stdout.on("data", async (data) => {
-        log("authServer", data.toString());
-        if (data.toString().includes("Authserver listening to")) {
-          await check();
-          reply("authServer", runningProcess.authServer);
-          resolve();
-        }
-      });
-
-      authServer.stderr.on("data", async (error) => {
-        log("authServer", error.toString());
-        if (error.toString().includes("Authserver listening to")) {
-          await check();
-          reply("authServer", runningProcess.authServer);
-          resolve();
-        }
-      });
-    } else {
-      log("authServer", `Auth Server正在运行中`, false);
-      reply("authServer", runningProcess.authServer);
       resolve();
     }
   });
@@ -258,17 +220,45 @@ function startWorldServer() {
         }
       });
     } else {
-      log("worldServer", `World Server正在运行中`, false);
       reply("worldServer", runningProcess.worldServer);
       resolve();
     }
   });
 }
 
-function startWow() {
-  spawn("Wow.exe", {
-    cwd: "D:\\FoxWOW\\Client\\",
-    shell: "cmd.exe",
+function startAuthServer() {
+  return new Promise(async (resolve, reject) => {
+    await check();
+
+    if (runningProcess.authServer.length === 0) {
+      log("authServer", "正在启动Auth Server", false);
+      let authServer = spawn("authserver.exe", {
+        cwd: "D:\\FoxWOW\\Server\\Core\\",
+        shell: "cmd.exe",
+        windowsHide: true,
+      });
+
+      authServer.stdout.on("data", async (data) => {
+        log("authServer", data.toString());
+        if (data.toString().includes("Authserver listening to")) {
+          await check();
+          reply("authServer", runningProcess.authServer);
+          resolve();
+        }
+      });
+
+      authServer.stderr.on("data", async (error) => {
+        log("authServer", error.toString());
+        if (error.toString().includes("Authserver listening to")) {
+          await check();
+          reply("authServer", runningProcess.authServer);
+          resolve();
+        }
+      });
+    } else {
+      reply("authServer", runningProcess.authServer);
+      resolve();
+    }
   });
 }
 
@@ -285,6 +275,19 @@ async function stopMysql() {
   reply("mysql", runningProcess.mysql);
 }
 
+async function stopWorldServer() {
+  await check();
+
+  try {
+    await kill(runningProcess.worldServer);
+    runningProcess.worldServer = [];
+    log("worldServer", "World Server已停止", false);
+  } catch (error) {
+    log("worldServer", `World Server${error}`, false);
+  }
+  reply("worldServer", runningProcess.worldServer);
+}
+
 async function stopAuthServer() {
   await check();
 
@@ -298,17 +301,11 @@ async function stopAuthServer() {
   reply("authServer", runningProcess.authServer);
 }
 
-async function stopWorldServer() {
-  await check();
-
-  try {
-    await kill(runningProcess.worldServer);
-    runningProcess.worldServer = [];
-    log("worldServer", "World Server已停止", false);
-  } catch (error) {
-    log("worldServer", `World Server${error}`, false);
-  }
-  reply("worldServer", runningProcess.worldServer);
+function startWow() {
+  spawn("Wow.exe", {
+    cwd: "D:\\FoxWOW\\Client\\",
+    shell: "cmd.exe",
+  });
 }
 
 function startFoxy() {

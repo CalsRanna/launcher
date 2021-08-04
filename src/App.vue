@@ -4,21 +4,33 @@
       <div
         style="height: 16px;text-align: right;line-height: 16px;margin: 8px 0;"
       >
+        <el-button type="text" size="mini" style="padding: 0" @click="minimize">
+          <i class="el-icon-minus" style="font-size: 16px;"></i>
+        </el-button>
         <el-button type="text" size="mini" style="padding: 0" @click="exit">
           <i class="el-icon-close" style="font-size: 16px;"></i>
         </el-button>
       </div>
       <el-header class="header">
-        <el-button icon="el-icon-s-grid" @click="navigate('launcher')">
+        <el-button
+          icon="el-icon-s-grid"
+          :disabled="module === 'launcher'"
+          @click="navigate('launcher')"
+        >
           登录游戏
         </el-button>
         <el-button
           style="margin-left: 8px;"
+          :disabled="module === 'configuration-editor'"
           @click="navigate('configuration-editor')"
         >
           配置编辑
         </el-button>
-        <el-button style="margin-left: 8px;" @click="navigate('setting')">
+        <el-button
+          style="margin-left: 8px;"
+          :disabled="module === 'setting'"
+          @click="navigate('setting')"
+        >
           设置
         </el-button>
         <el-button style="margin-left: 8px;" @click="open('foxy')">
@@ -44,8 +56,16 @@ import { MessageBox } from "element-ui";
 import { mapActions } from "vuex";
 
 export default {
+  data() {
+    return {
+      module: "launcher",
+    };
+  },
   methods: {
     ...mapActions("launcher", ["updateProcess", "updateConsole"]),
+    minimize() {
+      ipcRenderer.send("MINIMIZE");
+    },
     exit() {
       ipcRenderer.send("EXIT_APP");
     },
@@ -53,6 +73,7 @@ export default {
       ipcRenderer.send("OPEN_SOFTWARE", { software });
     },
     navigate(module) {
+      this.module = module;
       this.$router.push(`/${module}`).then(() => {});
     },
   },
@@ -62,10 +83,6 @@ export default {
     });
     ipcRenderer.on("CHILD_PROCESS_STDOUT", (event, payload) => {
       this.updateConsole(payload);
-      this.$nextTick(() => {
-        let element = this.$refs[payload.channel].$el;
-        element.scrollTop = element.scrollHeight;
-      });
     });
     ipcRenderer.on("GLOBAL_MESSAGE", (event, response) => {
       MessageBox.alert(response, "未知错误", {

@@ -60,6 +60,10 @@ if (isDevelopment) {
   }
 }
 
+ipcMain.on("MINIMIZE", () => {
+  win.minimize();
+});
+
 ipcMain.on("EXIT_APP", () => {
   app.quit();
 });

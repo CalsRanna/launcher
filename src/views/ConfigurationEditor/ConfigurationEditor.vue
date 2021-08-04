@@ -3,17 +3,17 @@
     <el-col :span="6">
       <el-card style="height: 789px;">
         <el-menu
-          default-active="auth-server"
+          default-active="world-server"
           style="border-right: none !important"
           @select="navigate"
         >
-          <el-menu-item index="auth-server">
-            <i class="el-icon-setting"></i>
-            <span slot="title">Auth Server</span>
-          </el-menu-item>
           <el-menu-item index="world-server">
             <i class="el-icon-setting"></i>
             <span slot="title">World Server</span>
+          </el-menu-item>
+          <el-menu-item index="auth-server">
+            <i class="el-icon-setting"></i>
+            <span slot="title">Auth Server</span>
           </el-menu-item>
         </el-menu>
       </el-card>
@@ -32,7 +32,7 @@ export default {
     },
   },
   mounted() {
-    this.navigate("auth-server");
+    this.navigate("world-server");
   },
 };
 </script>

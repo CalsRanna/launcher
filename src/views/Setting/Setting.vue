@@ -3,17 +3,17 @@
     <el-col :span="6">
       <el-card style="height: 789px;">
         <el-menu
-          default-active="app"
+          default-active="game"
           style="border-right: none !important"
           @select="navigate"
         >
-          <el-menu-item index="software">
-            <i class="el-icon-menu"></i>
-            <span slot="title">应用</span>
-          </el-menu-item>
           <el-menu-item index="game">
             <i class="el-icon-document"></i>
             <span slot="title">游戏设置</span>
+          </el-menu-item>
+          <el-menu-item index="software">
+            <i class="el-icon-menu"></i>
+            <span slot="title">应用</span>
           </el-menu-item>
           <el-menu-item index="about" style="border-top: solid 1px #DCDFE6">
             <i class="el-icon-warning-outline"></i>
@@ -34,6 +34,9 @@ export default {
     navigate(index) {
       this.$router.push(`/setting/${index}`).then(() => {});
     },
+  },
+  mounted() {
+    this.navigate("game");
   },
 };
 </script>

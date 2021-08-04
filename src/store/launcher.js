@@ -2,6 +2,11 @@ export default {
   namespaced: true,
   state() {
     return {
+      status: {
+        mysql: false,
+        authServer: false,
+        worldServer: false,
+      },
       process: {
         mysql: [],
         authServer: [],
@@ -15,6 +20,9 @@ export default {
     };
   },
   actions: {
+    updateStatus({ commit }, payload) {
+      commit("UPDATE_STATUS", payload);
+    },
     updateProcess({ commit }, payload) {
       commit("UPDATE_PROCESS", payload);
     },
@@ -23,6 +31,9 @@ export default {
     },
   },
   mutations: {
+    UPDATE_STATUS(state, payload) {
+      state.status[payload.service] = payload.status;
+    },
     UPDATE_PROCESS(state, payload) {
       state.process[payload.channel] = payload.process;
     },
