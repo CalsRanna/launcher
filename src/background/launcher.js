@@ -12,6 +12,10 @@ String.prototype.toFirstUpperWord = function() {
   return this.toLowerCase().replace(/( |^)[a-z]/g, (L) => L.toUpperCase());
 };
 
+function clear(channel) {
+  win.webContents.send("CHILD_PROCESS_CLEAR", { channel });
+}
+
 function log(channel, message, formatted = true) {
   if (!formatted) {
     message = `${new Date().toLocaleString()} [Launcher] ${message}\n`;
@@ -84,10 +88,10 @@ function kill(pids) {
         resolve();
       } catch (error) {
         throwError(error);
-        reject("停止时发生错误");
+        reject("has some error when try to stop service");
       }
     } else {
-      reject("尚未启动");
+      reject(" has not been started");
     }
   });
 }
@@ -111,7 +115,7 @@ ipcMain.on("MANAGE_SERVICE", (event, payload) => {
 ipcMain.on("ENTER_GAME", () => {
   check().then(async () => {
     await startMysql();
-    startWorldServer();
+    await startWorldServer();
     startAuthServer();
     startWow();
   });
@@ -158,9 +162,10 @@ function startMysql() {
     await check();
 
     if (runningProcess.mysql.length === 0) {
-      log("mysql", "正在启动Mysql", false);
+      clear("mysql");
+      log("mysql", "Starting mysql", false);
       let mysql = spawn("mysqld.exe", ["--console"], {
-        cwd: "D:\\FoxWOW\\Server\\Database\\bin\\",
+        cwd: "D:\\AzerothCore\\Server\\Database\\bin\\",
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -195,9 +200,10 @@ function startWorldServer() {
     await check();
 
     if (runningProcess.worldServer.length === 0) {
-      log("worldServer", "正在启动World Server", false);
+      clear("worldServer");
+      log("worldServer", "Starting world server", false);
       let worldServer = spawn("worldserver.exe", {
-        cwd: "D:\\FoxWOW\\Server\\Core\\",
+        cwd: "D:\\AzerothCore\\Server\\Core\\",
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -231,14 +237,16 @@ function startAuthServer() {
     await check();
 
     if (runningProcess.authServer.length === 0) {
-      log("authServer", "正在启动Auth Server", false);
+      clear("authServer");
+      log("authServer", "Starting auth server", false);
       let authServer = spawn("authserver.exe", {
-        cwd: "D:\\FoxWOW\\Server\\Core\\",
+        cwd: "D:\\AzerothCore\\Server\\Core\\",
         shell: "cmd.exe",
         windowsHide: true,
       });
 
       authServer.stdout.on("data", async (data) => {
+        console.log(data);
         log("authServer", data.toString());
         if (data.toString().includes("Authserver listening to")) {
           await check();
@@ -268,7 +276,7 @@ async function stopMysql() {
   try {
     await kill(runningProcess.mysql);
     runningProcess.mysql = [];
-    log("mysql", "Mysql已停止", false);
+    log("mysql", "Mysql has been stopped", false);
   } catch (error) {
     log("mysql", `Mysql${error}`, false);
   }
@@ -281,7 +289,7 @@ async function stopWorldServer() {
   try {
     await kill(runningProcess.worldServer);
     runningProcess.worldServer = [];
-    log("worldServer", "World Server已停止", false);
+    log("worldServer", "World server has been stopped", false);
   } catch (error) {
     log("worldServer", `World Server${error}`, false);
   }
@@ -294,7 +302,7 @@ async function stopAuthServer() {
   try {
     await kill(runningProcess.authServer);
     runningProcess.authServer = [];
-    log("authServer", "Auth Server已停止", false);
+    log("authServer", "Auth server has been stopped", false);
   } catch (error) {
     log("authServer", `Auth Server${error}`, false);
   }
@@ -302,29 +310,29 @@ async function stopAuthServer() {
 }
 
 function startWow() {
-  spawn("Wow.exe", {
-    cwd: "D:\\FoxWOW\\Client\\",
+  spawn("launcher.bat", {
+    cwd: "D:\\AzerothCore\\Client\\",
     shell: "cmd.exe",
   });
 }
 
 function startFoxy() {
   spawn("Foxy.exe", {
-    cwd: "D:\\FoxWOW\\Tools\\",
+    cwd: "D:\\AzerothCore\\Tools\\",
     shell: "cmd.exe",
   });
 }
 
 function startMpqEditor() {
   spawn("MPQEditor.exe", {
-    cwd: "D:\\FoxWOW\\Tools\\MPQEditor\\",
+    cwd: "D:\\AzerothCore\\Tools\\MPQEditor\\",
     shell: "cmd.exe",
   });
 }
 
 function startNavicat() {
   spawn("navicat.exe", {
-    cwd: "D:\\FoxWOW\\Tools\\Navicat Premium\\",
+    cwd: "D:\\AzerothCore\\Tools\\Navicat Premium\\",
     shell: "cmd.exe",
   });
 }

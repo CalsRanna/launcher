@@ -62,7 +62,11 @@ export default {
     };
   },
   methods: {
-    ...mapActions("launcher", ["updateProcess", "updateConsole"]),
+    ...mapActions("launcher", [
+      "updateProcess",
+      "updateConsole",
+      "clearConsole",
+    ]),
     minimize() {
       ipcRenderer.send("MINIMIZE");
     },
@@ -83,6 +87,9 @@ export default {
     });
     ipcRenderer.on("CHILD_PROCESS_STDOUT", (event, payload) => {
       this.updateConsole(payload);
+    });
+    ipcRenderer.on("CHILD_PROCESS_CLEAR", (event, payload) => {
+      this.clearConsole(payload);
     });
     ipcRenderer.on("GLOBAL_MESSAGE", (event, response) => {
       MessageBox.alert(response, "未知错误", {
@@ -114,6 +121,9 @@ body {
   background-color: rgba(40, 42, 50, 0.25);
   line-height: 60px;
   border-radius: 8px;
+}
+.el-card__header {
+  padding: 0 20px !important;
 }
 .el-card__body {
   padding: 16px !important;

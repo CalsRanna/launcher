@@ -14,8 +14,8 @@
   "main": "background.js",
   "dependencies": {
     "@calsranna/dot-conf": "^1.0.1",
-    "core-js": "^3.15.2",
-    "element-ui": "^2.15.3",
+    "core-js": "^3.18.0",
+    "element-ui": "^2.15.6",
     "vue": "^2.6.14",
     "vue-router": "^3.5.2",
     "vuex": "^3.4.0"
@@ -28,7 +28,7 @@
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
     "babel-plugin-component": "^1.1.1",
-    "electron": "^13.1.7",
+    "electron": "^15.0.0",
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",

@@ -29,6 +29,9 @@ export default {
     updateConsole({ commit }, payload) {
       commit("UPDATE_CONSOLE", payload);
     },
+    clearConsole({ commit }, payload) {
+      commit("CLEAR_CONSOLE", payload);
+    },
   },
   mutations: {
     UPDATE_STATUS(state, payload) {
@@ -39,6 +42,9 @@ export default {
     },
     UPDATE_CONSOLE(state, payload) {
       state.console[payload.channel] += payload.message;
+    },
+    CLEAR_CONSOLE(state, payload) {
+      state.console[payload.channel] = "";
     },
   },
 };

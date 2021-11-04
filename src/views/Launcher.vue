@@ -57,6 +57,7 @@
             </div>
             <el-select v-model="version" style="margin-top: 8px;width: 260px;">
               <el-option label="AzerothCore" value="AzerothCore"></el-option>
+              <el-option label="FoxCore" value="FoxCore"></el-option>
             </el-select>
             <div style="margin-top: 8px;">
               <el-button
