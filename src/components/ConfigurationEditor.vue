@@ -66,14 +66,18 @@ export default {
       const dotConf = window.dotConf;
 
       dotConf
-        .read("D:\\FoxWoW\\Server\\Core\\configs\\authserver.conf")
+        .read(
+          "D:\\Simulators\\Server\\AzerothCore\\Core\\configs\\authserver.conf"
+        )
         .then((conf) => {
           this.authserverConfiguration = conf.authserver;
           this.authLabels = Object.keys(conf.authserver);
         });
 
       dotConf
-        .read("D:\\FoxWoW\\Server\\Core\\configs\\worldserver.conf")
+        .read(
+          "D:\\Simulators\\Server\\AzerothCore\\Core\\configs\\worldserver.conf"
+        )
         .then((conf) => {
           this.worldserverConfiguration = conf.worldserver;
           this.worldLabels = Object.keys(conf.worldserver);

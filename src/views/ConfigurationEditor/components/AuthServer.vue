@@ -63,7 +63,7 @@ export default {
       const dotConf = window.dotConf;
 
       dotConf
-        .write("D:\\FoxWoW\\Server\\Core\\configs\\authserver.conf", {
+        .write(`${localStorage.getItem("config_path")}/authserver.conf`, {
           authserver: this.authserverConfiguration,
         })
         .then(() => {
@@ -77,7 +77,7 @@ export default {
       const dotConf = window.dotConf;
 
       dotConf
-        .read("D:\\FoxWoW\\Server\\Core\\configs\\authserver.conf")
+        .read(`${localStorage.getItem("config_path")}/authserver.conf`)
         .then((conf) => {
           this.authserverConfiguration = conf.authserver;
           this.authLabels = Object.keys(conf.authserver);

@@ -8,6 +8,16 @@ global.runningProcess = {
   worldServer: [],
 };
 
+global.path = {
+  mysql: "",
+  worldServer: "",
+  authServer: "",
+  client: "",
+  foxy: "",
+  mpqEditor: "",
+  navicat: "",
+};
+
 String.prototype.toFirstUpperWord = function() {
   return this.toLowerCase().replace(/( |^)[a-z]/g, (L) => L.toUpperCase());
 };
@@ -96,6 +106,10 @@ function kill(pids) {
   });
 }
 
+ipcMain.on("INIT_PATHS", (event, payload) => {
+  global.paths = payload;
+});
+
 ipcMain.on("MANAGE_SERVICE", (event, payload) => {
   switch (payload.service) {
     case "mysql":
@@ -165,7 +179,7 @@ function startMysql() {
       clear("mysql");
       log("mysql", "Starting mysql", false);
       let mysql = spawn("mysqld.exe", ["--console"], {
-        cwd: "D:\\AzerothCore\\Server\\Database\\bin\\",
+        cwd: global.paths.mysql,
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -203,7 +217,7 @@ function startWorldServer() {
       clear("worldServer");
       log("worldServer", "Starting world server", false);
       let worldServer = spawn("worldserver.exe", {
-        cwd: "D:\\AzerothCore\\Server\\Core\\",
+        cwd: global.paths.worldServer,
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -240,7 +254,7 @@ function startAuthServer() {
       clear("authServer");
       log("authServer", "Starting auth server", false);
       let authServer = spawn("authserver.exe", {
-        cwd: "D:\\AzerothCore\\Server\\Core\\",
+        cwd: global.paths.authServer,
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -311,28 +325,28 @@ async function stopAuthServer() {
 
 function startWow() {
   spawn("launcher.bat", {
-    cwd: "D:\\AzerothCore\\Client\\",
+    cwd: global.paths.client,
     shell: "cmd.exe",
   });
 }
 
 function startFoxy() {
   spawn("Foxy.exe", {
-    cwd: "D:\\AzerothCore\\Tools\\",
+    cwd: global.paths.foxy,
     shell: "cmd.exe",
   });
 }
 
 function startMpqEditor() {
   spawn("MPQEditor.exe", {
-    cwd: "D:\\AzerothCore\\Tools\\MPQEditor\\",
+    cwd: global.paths.mpqEditor,
     shell: "cmd.exe",
   });
 }
 
 function startNavicat() {
   spawn("navicat.exe", {
-    cwd: "D:\\AzerothCore\\Tools\\Navicat Premium\\",
+    cwd: global.paths.navicat,
     shell: "cmd.exe",
   });
 }

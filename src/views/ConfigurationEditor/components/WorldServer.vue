@@ -63,7 +63,7 @@ export default {
       const dotConf = window.dotConf;
 
       dotConf
-        .write("D:\\FoxWoW\\Server\\Core\\configs\\worldserver.conf", {
+        .write(`${localStorage.getItem("config_path")}/worldserver.conf`, {
           worldserver: this.worldserverConfiguration,
         })
         .then(() => {
@@ -77,7 +77,7 @@ export default {
       const dotConf = window.dotConf;
 
       dotConf
-        .read("D:\\FoxWoW\\Server\\Core\\configs\\worldserver.conf")
+        .read(`${localStorage.getItem("config_path")}/worldserver.conf`)
         .then((conf) => {
           this.worldserverConfiguration = conf.worldserver;
           this.worldLabels = Object.keys(conf.worldserver);

@@ -31,18 +31,26 @@
         Azeroth Core
         <small style="color: #909399">3.3.5 12340</small>
       </h3>
-      <el-form label-width="120px">
+      <el-form :model="path" label-width="120px">
         <el-form-item label="Mysqld">
-          <el-input> <el-button slot="append">选择文件</el-button></el-input>
+          <el-input v-model="path.mysql">
+            <el-button slot="append">指定路径</el-button></el-input
+          >
         </el-form-item>
         <el-form-item label="World Server">
-          <el-input> <el-button slot="append">选择文件</el-button></el-input>
+          <el-input v-model="path.worldServer">
+            <el-button slot="append">指定路径</el-button></el-input
+          >
         </el-form-item>
         <el-form-item label="Auth Server">
-          <el-input> <el-button slot="append">选择文件</el-button></el-input>
+          <el-input v-model="path.authServer">
+            <el-button slot="append">指定路径</el-button></el-input
+          >
         </el-form-item>
-        <el-form-item label="WoW">
-          <el-input> <el-button slot="append">选择文件</el-button></el-input>
+        <el-form-item label="Client">
+          <el-input v-model="path.client">
+            <el-button slot="append">指定路径</el-button></el-input
+          >
         </el-form-item>
         <el-form-item>
           <el-button type="primary">保存</el-button>
@@ -62,6 +70,12 @@ export default {
         name: "",
         version: 12340,
       },
+      path: {
+        mysql: "",
+        worldServer: "",
+        authServer: "",
+        client: "",
+      },
     };
   },
   methods: {
@@ -70,8 +84,12 @@ export default {
     },
   },
   mounted() {
-    let versions = localStorage.getItem("version");
-    alert(versions);
+    this.path = {
+      mysql: localStorage.getItem("mysql_path"),
+      worldServer: localStorage.getItem("world_server_path"),
+      authServer: localStorage.getItem("auth_server_path"),
+      client: localStorage.getItem("client_path"),
+    };
   },
 };
 </script>
