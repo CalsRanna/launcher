@@ -96,52 +96,56 @@ export default {
         confirmButtonText: "确定",
       });
     });
+    if (!localStorage.getItem("mysql_path")) {
+      localStorage.setItem(
+        "mysql_path",
+        "D:/Simulators/Server/AzerothCore/Database/bin/mysqld.exe"
+      );
+    }
+    if (!localStorage.getItem("world_server_path")) {
+      localStorage.setItem(
+        "world_server_path",
+        "D:/Simulators/Server/AzerothCore/Core/worldserver.exe"
+      );
+    }
+    if (!localStorage.getItem("auth_server_path")) {
+      localStorage.setItem(
+        "auth_server_path",
+        "D:/Simulators/Server/AzerothCore/Core/authserver.exe"
+      );
+    }
     if (!localStorage.getItem("config_path")) {
       localStorage.setItem(
         "config_path",
         "D:/Simulators/Server/AzerothCore/Core/configs"
       );
     }
-    if (!localStorage.getItem("mysql_path")) {
-      localStorage.setItem(
-        "mysql_path",
-        "D:/Simulators/Server/AzerothCore/Database/bin/"
-      );
-    }
-    if (!localStorage.getItem("world_server_path")) {
-      localStorage.setItem(
-        "world_server_path",
-        "D:/Simulators/Server/AzerothCore/Core/"
-      );
-    }
-    if (!localStorage.getItem("auth_server_path")) {
-      localStorage.setItem(
-        "auth_server_path",
-        "D:/Simulators/Server/AzerothCore/Core/"
-      );
-    }
     if (!localStorage.getItem("client_path")) {
       localStorage.setItem(
         "client_path",
-        "D:/Simulators/Client/Wrath of Lich King/"
+        "D:/Simulators/Client/Wrath of Lich King/Wow.exe"
       );
     }
     if (!localStorage.getItem("foxy_path")) {
-      localStorage.setItem("foxy_path", "D:/Simulators/Tool/");
+      localStorage.setItem("foxy_path", "D:/Simulators/Tool/Foxy.exe");
     }
     if (!localStorage.getItem("mpq_editor_path")) {
-      localStorage.setItem("mpq_editor_path", "D:/Simulators/Tool/MPQEditor/");
+      localStorage.setItem(
+        "mpq_editor_path",
+        "D:/Simulators/Tool/MPQEditor/MPQEditor.exe"
+      );
     }
     if (!localStorage.getItem("navicat_path")) {
       localStorage.setItem(
         "navicat_path",
-        "D:/Simulators/Tool/Navicat Premium/"
+        "D:/Simulators/Tool/Navicat Premium/navicat.exe"
       );
     }
     ipcRenderer.send("INIT_PATHS", {
       mysql: localStorage.getItem("mysql_path"),
       worldServer: localStorage.getItem("world_server_path"),
       authServer: localStorage.getItem("auth_server_path"),
+      config: localStorage.getItem("config_path"),
       client: localStorage.getItem("client_path"),
       foxy: localStorage.getItem("foxy_path"),
       mpqEditor: localStorage.getItem("mpq_editor_path"),

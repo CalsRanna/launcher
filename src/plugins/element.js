@@ -16,7 +16,6 @@ import {
   Main,
   Menu,
   MenuItem,
-  Notification,
   Option,
   Row,
   Select,
@@ -41,7 +40,6 @@ Vue.use(Input);
 Vue.use(Main);
 Vue.use(Menu);
 Vue.use(MenuItem);
-Vue.use(Notification);
 Vue.use(Option);
 Vue.use(Row);
 Vue.use(Select);

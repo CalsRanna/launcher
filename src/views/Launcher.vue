@@ -12,8 +12,14 @@
               </span>
             </el-col>
             <el-col :span="8" style="text-align:right;">
+              <i
+                class="el-icon-loading"
+                style="margin-right: 4px"
+                v-if="disabled.mysql"
+              />
               <el-switch
                 v-model="status.mysql"
+                :disabled="disabled.mysql"
                 @change="(status) => handleChange('mysql', status)"
               >
               </el-switch>
@@ -27,8 +33,14 @@
               </span>
             </el-col>
             <el-col :span="8" style="text-align:right;">
+              <i
+                class="el-icon-loading"
+                style="margin-right: 4px"
+                v-if="disabled.worldServer"
+              />
               <el-switch
                 v-model="status.worldServer"
+                :disabled="disabled.worldServer"
                 @change="(status) => handleChange('worldServer', status)"
               >
               </el-switch>
@@ -42,8 +54,14 @@
               </span>
             </el-col>
             <el-col :span="8" style="text-align:right;">
+              <i
+                class="el-icon-loading"
+                style="margin-right: 4px"
+                v-if="disabled.authServer"
+              />
               <el-switch
                 v-model="status.authServer"
+                :disabled="disabled.authServer"
                 @change="(status) => handleChange('authServer', status)"
               >
               </el-switch>
@@ -130,7 +148,7 @@ export default {
     };
   },
   computed: {
-    ...mapState("launcher", ["status", "process", "console"]),
+    ...mapState("launcher", ["status", "disabled", "process", "console"]),
   },
   methods: {
     ...mapActions("launcher", ["updateStatus"]),

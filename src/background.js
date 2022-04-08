@@ -1,6 +1,6 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, ipcMain } from "electron";
+import { app, protocol, BrowserWindow, ipcMain, dialog } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 const isDevelopment = process.env.NODE_ENV !== "production";
 const path = require("path");
@@ -66,4 +66,16 @@ ipcMain.on("MINIMIZE", () => {
 
 ipcMain.on("EXIT_APP", () => {
   app.quit();
+});
+
+ipcMain.on("CHOOSE_FILE", (event) => {
+  dialog.showOpenDialog({}).then((result) => {
+    event.sender.send("CHOOSE_FILE", result);
+  });
+});
+
+ipcMain.on("CHOOSE_DIRECTORY", (event) => {
+  dialog.showOpenDialog({ properties: ["openDirectory"] }).then((result) => {
+    event.sender.send("CHOOSE_DIRECTORY", result);
+  });
 });

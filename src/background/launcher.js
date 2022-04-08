@@ -178,8 +178,11 @@ function startMysql() {
     if (runningProcess.mysql.length === 0) {
       clear("mysql");
       log("mysql", "Starting mysql", false);
-      let mysql = spawn("mysqld.exe", ["--console"], {
-        cwd: global.paths.mysql,
+      let patterns = global.paths.mysql.split("\\");
+      let cwd = patterns.slice(0, -1).join("/");
+      let program = patterns[patterns.length - 1];
+      let mysql = spawn(program, ["--console"], {
+        cwd: cwd,
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -216,8 +219,11 @@ function startWorldServer() {
     if (runningProcess.worldServer.length === 0) {
       clear("worldServer");
       log("worldServer", "Starting world server", false);
-      let worldServer = spawn("worldserver.exe", {
-        cwd: global.paths.worldServer,
+      let patterns = global.paths.worldServer.split("\\");
+      let cwd = patterns.slice(0, -1).join("/");
+      let program = patterns[patterns.length - 1];
+      let worldServer = spawn(program, {
+        cwd: cwd,
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -253,8 +259,11 @@ function startAuthServer() {
     if (runningProcess.authServer.length === 0) {
       clear("authServer");
       log("authServer", "Starting auth server", false);
-      let authServer = spawn("authserver.exe", {
-        cwd: global.paths.authServer,
+      let patterns = global.paths.authServer.split("\\");
+      let cwd = patterns.slice(0, -1).join("/");
+      let program = patterns[patterns.length - 1];
+      let authServer = spawn(program, {
+        cwd: cwd,
         shell: "cmd.exe",
         windowsHide: true,
       });
@@ -324,29 +333,49 @@ async function stopAuthServer() {
 }
 
 function startWow() {
-  spawn("launcher.bat", {
-    cwd: global.paths.client,
+  let patterns = global.paths.client.split("\\");
+  let cwd = patterns.slice(0, -1).join("/");
+  let program = patterns[patterns.length - 1];
+  spawn("rd /s /q Cache", {
+    cwd: cwd,
+    shell: "cmd.exe",
+  });
+  spawn("echo SET realmlist '127.0.0.1' > realmlist.wtf", {
+    cwd: cwd,
+    shell: "cmd.exe",
+  });
+  spawn(program, {
+    cwd: cwd,
     shell: "cmd.exe",
   });
 }
 
 function startFoxy() {
-  spawn("Foxy.exe", {
-    cwd: global.paths.foxy,
+  let patterns = global.paths.foxy.split("\\");
+  let cwd = patterns.slice(0, -1).join("/");
+  let program = patterns[patterns.length - 1];
+  spawn(program, {
+    cwd: cwd,
     shell: "cmd.exe",
   });
 }
 
 function startMpqEditor() {
-  spawn("MPQEditor.exe", {
-    cwd: global.paths.mpqEditor,
+  let patterns = global.paths.mpqEditor.split("\\");
+  let cwd = patterns.slice(0, -1).join("/");
+  let program = patterns[patterns.length - 1];
+  spawn(program, {
+    cwd: cwd,
     shell: "cmd.exe",
   });
 }
 
 function startNavicat() {
-  spawn("navicat.exe", {
-    cwd: global.paths.navicat,
+  let patterns = global.paths.navicat.split("\\");
+  let cwd = patterns.slice(0, -1).join("/");
+  let program = patterns[patterns.length - 1];
+  spawn(program, {
+    cwd: cwd,
     shell: "cmd.exe",
   });
 }
